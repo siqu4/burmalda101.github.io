@@ -6,30 +6,20 @@ import secrets
 from flask import Flask, request, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
-# =========================================================
-# SKY DODGE BACKEND
-# =========================================================
-
 app = Flask(__name__)
 
+# Секретный ключ для сессий
 app.secret_key = os.environ.get(
     "SECRET_KEY",
     secrets.token_hex(32)
 )
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
-
-DATABASE = os.path.join(
-    BASE_DIR,
-    "sky_dodge.db"
-)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, "sky_dodge.db")
 
 
 # =========================================================
-# DATABASE
+# БАЗА ДАННЫХ
 # =========================================================
 
 def get_db():
@@ -39,18 +29,13 @@ def get_db():
 
 
 def init_database():
-
     db = get_db()
 
     db.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            username TEXT NOT NULL
-                UNIQUE COLLATE NOCASE,
-
+            username TEXT NOT NULL UNIQUE COLLATE NOCASE,
             password_hash TEXT NOT NULL,
-
             created_at INTEGER NOT NULL
         )
     """)
@@ -58,19 +43,14 @@ def init_database():
     db.execute("""
         CREATE TABLE IF NOT EXISTS scores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            user_id INTEGER NOT NULL
-                UNIQUE,
-
+            user_id INTEGER NOT NULL UNIQUE,
             best_score INTEGER NOT NULL DEFAULT 0,
-
             best_level INTEGER NOT NULL DEFAULT 1,
-
             updated_at INTEGER NOT NULL,
 
             FOREIGN KEY(user_id)
-                REFERENCES users(id)
-                ON DELETE CASCADE
+            REFERENCES users(id)
+            ON DELETE CASCADE
         )
     """)
 
@@ -82,11 +62,10 @@ init_database()
 
 
 # =========================================================
-# HELPERS
+# ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ
 # =========================================================
 
 def get_user():
-
     user_id = session.get("user_id")
 
     if not user_id:
@@ -108,6 +87,10 @@ def get_user():
     return user
 
 
+# =========================================================
+# ПРОВЕРКА НИКА
+# =========================================================
+
 def validate_username(username):
 
     if not isinstance(username, str):
@@ -124,8 +107,7 @@ def validate_username(username):
     allowed = (
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "0123456789"
-        "_-"
+        "0123456789_-"
     )
 
     for char in username:
@@ -137,7 +119,7 @@ def validate_username(username):
 
 
 # =========================================================
-# MAIN PAGE
+# ГЛАВНАЯ СТРАНИЦА
 # =========================================================
 
 @app.route("/")
@@ -152,7 +134,7 @@ def index():
 
         return """
         <h1>SKY DODGE</h1>
-        <p>index.html не найден.</p>
+        <p>Файл index.html не найден.</p>
         """, 404
 
     with open(
@@ -165,7 +147,7 @@ def index():
 
 
 # =========================================================
-# REGISTER
+# РЕГИСТРАЦИЯ
 # =========================================================
 
 @app.route(
@@ -182,9 +164,8 @@ def register():
         data.get("username")
     )
 
-    password = data.get(
-        "password"
-    )
+    password = data.get("password")
+
 
     if not username:
 
@@ -194,16 +175,14 @@ def register():
                 "Ник должен содержать от 3 до 20 символов."
         }), 400
 
-    if not isinstance(
-        password,
-        str
-    ):
+
+    if not isinstance(password, str):
 
         return jsonify({
             "success": False,
-            "message":
-                "Введите пароль."
+            "message": "Введите пароль."
         }), 400
+
 
     if len(password) < 6:
 
@@ -213,6 +192,7 @@ def register():
                 "Пароль должен содержать минимум 6 символов."
         }), 400
 
+
     if len(password) > 128:
 
         return jsonify({
@@ -221,9 +201,10 @@ def register():
                 "Пароль слишком длинный."
         }), 400
 
+
     db = get_db()
 
-    exists = db.execute(
+    existing = db.execute(
         """
         SELECT id
         FROM users
@@ -232,7 +213,8 @@ def register():
         (username,)
     ).fetchone()
 
-    if exists:
+
+    if existing:
 
         db.close()
 
@@ -242,13 +224,13 @@ def register():
                 "Такой ник уже существует."
         }), 409
 
-    password_hash = (
-        generate_password_hash(
-            password
-        )
+
+    password_hash = generate_password_hash(
+        password
     )
 
     now = int(time.time())
+
 
     cursor = db.execute(
         """
@@ -267,7 +249,9 @@ def register():
         )
     )
 
+
     user_id = cursor.lastrowid
+
 
     db.execute(
         """
@@ -286,17 +270,18 @@ def register():
         )
     )
 
+
     db.commit()
     db.close()
 
-    session.clear()
 
+    session.clear()
     session["user_id"] = user_id
+
 
     return jsonify({
         "success": True,
-        "message":
-            "Аккаунт создан.",
+        "message": "Аккаунт создан.",
         "user": {
             "id": user_id,
             "username": username
@@ -305,7 +290,7 @@ def register():
 
 
 # =========================================================
-# LOGIN
+# ВХОД
 # =========================================================
 
 @app.route(
@@ -318,13 +303,13 @@ def login():
         silent=True
     ) or {}
 
+
     username = validate_username(
         data.get("username")
     )
 
-    password = data.get(
-        "password"
-    )
+    password = data.get("password")
+
 
     if not username or not password:
 
@@ -334,6 +319,7 @@ def login():
                 "Введите ник и пароль."
         }), 400
 
+
     db = get_db()
 
     user = db.execute(
@@ -342,15 +328,14 @@ def login():
             id,
             username,
             password_hash
-
         FROM users
-
         WHERE username = ?
         """,
         (username,)
     ).fetchone()
 
     db.close()
+
 
     if not user:
 
@@ -359,6 +344,7 @@ def login():
             "message":
                 "Неверный ник или пароль."
         }), 401
+
 
     if not check_password_hash(
         user["password_hash"],
@@ -371,28 +357,23 @@ def login():
                 "Неверный ник или пароль."
         }), 401
 
-    session.clear()
 
-    session["user_id"] = (
-        user["id"]
-    )
+    session.clear()
+    session["user_id"] = user["id"]
+
 
     return jsonify({
         "success": True,
-        "message":
-            "Вход выполнен.",
+        "message": "Вход выполнен.",
         "user": {
-            "id":
-                user["id"],
-
-            "username":
-                user["username"]
+            "id": user["id"],
+            "username": user["username"]
         }
     })
 
 
 # =========================================================
-# LOGOUT
+# ВЫХОД
 # =========================================================
 
 @app.route(
@@ -405,13 +386,12 @@ def logout():
 
     return jsonify({
         "success": True,
-        "message":
-            "Вы вышли из аккаунта."
+        "message": "Вы вышли из аккаунта."
     })
 
 
 # =========================================================
-# CURRENT USER
+# ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
 # =========================================================
 
 @app.route(
@@ -422,12 +402,14 @@ def me():
 
     user = get_user()
 
+
     if not user:
 
         return jsonify({
             "success": True,
             "logged_in": False
         })
+
 
     db = get_db()
 
@@ -436,9 +418,7 @@ def me():
         SELECT
             best_score,
             best_level
-
         FROM scores
-
         WHERE user_id = ?
         """,
         (user["id"],)
@@ -446,22 +426,17 @@ def me():
 
     db.close()
 
+
     return jsonify({
-
         "success": True,
-
         "logged_in": True,
 
         "user": {
-            "id":
-                user["id"],
-
-            "username":
-                user["username"]
+            "id": user["id"],
+            "username": user["username"]
         },
 
         "score": {
-
             "best_score":
                 score["best_score"]
                 if score else 0,
@@ -474,7 +449,7 @@ def me():
 
 
 # =========================================================
-# SAVE SCORE
+# СОХРАНЕНИЕ РЕКОРДА
 # =========================================================
 
 @app.route(
@@ -485,6 +460,7 @@ def save_score():
 
     user = get_user()
 
+
     if not user:
 
         return jsonify({
@@ -494,36 +470,30 @@ def save_score():
                 "Войдите в аккаунт."
         }), 401
 
+
     data = request.get_json(
         silent=True
     ) or {}
 
+
     try:
 
         score = int(
-            data.get(
-                "score",
-                0
-            )
+            data.get("score", 0)
         )
 
         level = int(
-            data.get(
-                "level",
-                1
-            )
+            data.get("level", 1)
         )
 
-    except (
-        ValueError,
-        TypeError
-    ):
+    except (ValueError, TypeError):
 
         return jsonify({
             "success": False,
             "message":
                 "Некорректный счёт."
         }), 400
+
 
     if score < 0:
 
@@ -533,6 +503,8 @@ def save_score():
                 "Счёт не может быть отрицательным."
         }), 400
 
+
+    # Защита от совсем нереальных значений
     if score > 10_000_000:
 
         return jsonify({
@@ -541,48 +513,52 @@ def save_score():
                 "Слишком большой счёт."
         }), 400
 
-    if level < 1:
 
+    if level < 1:
         level = 1
+
+
+    # В твоей игре:
+    # каждые 50 очков = новый уровень
 
     expected_level = (
         score // 50
     ) + 1
 
+
     if level > expected_level:
 
         level = expected_level
 
+
     db = get_db()
+
 
     old = db.execute(
         """
         SELECT
             best_score,
             best_level
-
         FROM scores
-
         WHERE user_id = ?
         """,
         (user["id"],)
     ).fetchone()
 
+
     old_score = (
         old["best_score"]
-        if old
-        else 0
+        if old else 0
     )
 
     old_level = (
         old["best_level"]
-        if old
-        else 1
+        if old else 1
     )
 
-    new_record = (
-        score > old_score
-    )
+
+    new_record = score > old_score
+
 
     if new_record:
 
@@ -594,7 +570,9 @@ def save_score():
         best_score = old_score
         best_level = old_level
 
+
     now = int(time.time())
+
 
     db.execute(
         """
@@ -605,11 +583,9 @@ def save_score():
             best_level,
             updated_at
         )
-
         VALUES (?, ?, ?, ?)
 
         ON CONFLICT(user_id)
-
         DO UPDATE SET
 
             best_score =
@@ -629,8 +605,10 @@ def save_score():
         )
     )
 
+
     db.commit()
     db.close()
+
 
     return jsonify({
 
@@ -648,7 +626,7 @@ def save_score():
 
 
 # =========================================================
-# LEADERBOARD
+# ТАБЛИЦА ЛИДЕРОВ
 # =========================================================
 
 @app.route(
@@ -658,6 +636,7 @@ def save_score():
 def leaderboard():
 
     db = get_db()
+
 
     rows = db.execute(
         """
@@ -680,9 +659,12 @@ def leaderboard():
         """
     ).fetchall()
 
+
     db.close()
 
+
     leaderboard_data = []
+
 
     for position, row in enumerate(
         rows,
@@ -704,17 +686,16 @@ def leaderboard():
                 row["best_level"]
         })
 
+
     return jsonify({
-
         "success": True,
-
         "leaderboard":
             leaderboard_data
     })
 
 
 # =========================================================
-# HEALTH CHECK
+# ПРОВЕРКА СЕРВЕРА
 # =========================================================
 
 @app.route(
@@ -724,14 +705,17 @@ def leaderboard():
 def health():
 
     return jsonify({
+
         "success": True,
+
         "status": "online",
+
         "game": "SKY DODGE"
     })
 
 
 # =========================================================
-# START
+# ЗАПУСК
 # =========================================================
 
 if __name__ == "__main__":
