@@ -4,17 +4,25 @@
 <head>
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width,
-    initial-scale=1.0,
-    maximum-scale=1.0,
-    user-scalable=no"
->
+<meta name="viewport"
+      content="width=device-width,
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no,
+      viewport-fit=cover">
 
-<title>SKY DODGE</title>
+<meta name="theme-color" content="#050914">
+
+<title>SKY DODGE MOBILE</title>
 
 <style>
+:root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+}
+
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
@@ -24,108 +32,136 @@
 html,
 body {
     margin: 0;
-    padding: 0;
     width: 100%;
     height: 100%;
+    min-height: 100dvh;
     overflow: hidden;
     background: #050914;
     font-family: Arial, sans-serif;
     touch-action: none;
+    overscroll-behavior: none;
 }
 
 body {
-    touch-action: none;
+    position: fixed;
+    inset: 0;
 }
 
 canvas {
     position: fixed;
     inset: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100dvh;
     display: block;
     touch-action: none;
 }
 
-/* ================= HUD ================= */
+/* =========================
+   HUD
+========================= */
 
 #hud {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    padding: 15px;
-    color: white;
-    pointer-events: none;
+    padding:
+        calc(10px + var(--safe-top))
+        calc(12px + var(--safe-right))
+        10px
+        calc(12px + var(--safe-left));
+
     z-index: 5;
+    pointer-events: none;
+    text-shadow: 0 2px 8px #000;
 }
 
 #gameName {
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 900;
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     opacity: .8;
 }
 
 #score {
-    font-size: 28px;
-    font-weight: 900;
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 1000;
     margin-top: 5px;
 }
 
 #record {
-    font-size: 14px;
+    font-size: 13px;
     color: #ffd84d;
-    margin-top: 3px;
-    font-weight: bold;
+    font-weight: 800;
+    margin-top: 4px;
 }
 
 #level {
-    font-size: 14px;
-    margin-top: 4px;
+    font-size: 13px;
     color: #66ddff;
+    font-weight: 800;
+    margin-top: 3px;
 }
 
 #lives {
-    margin-top: 6px;
-    font-size: 20px;
-    letter-spacing: 3px;
+    font-size: 18px;
+    margin-top: 4px;
+    letter-spacing: 2px;
 }
 
-/* ================= CHECKPOINT ================= */
+/* =========================
+   USER
+========================= */
+
+#userBox {
+    position: fixed;
+    top: calc(10px + var(--safe-top));
+    right: calc(10px + var(--safe-right));
+    z-index: 7;
+    pointer-events: auto;
+    font-size: 11px;
+    text-align: right;
+}
+
+#logoutBtn {
+    margin-top: 5px;
+    padding: 6px 8px;
+    font-size: 10px;
+    letter-spacing: 0;
+}
+
+/* =========================
+   CHECKPOINT
+========================= */
 
 #checkpoint {
     position: fixed;
-
     left: 50%;
     top: 23%;
 
     transform:
         translate(-50%, -50%)
-        scale(.75);
+        scale(.78);
 
-    color: white;
-
-    font-size: 34px;
-    font-weight: 1000;
-
-    letter-spacing: 5px;
-
+    width: 90%;
     text-align: center;
+
+    z-index: 12;
+    pointer-events: none;
 
     opacity: 0;
 
-    pointer-events: none;
-
-    z-index: 10;
+    font-size: clamp(24px, 8vw, 38px);
+    font-weight: 1000;
+    letter-spacing: 4px;
 
     text-shadow:
         3px 0 #00eaff,
         -3px 0 #ff00cc,
-        0 0 30px white;
+        0 0 28px #fff;
 
-    transition:
-        opacity .2s,
-        transform .3s;
+    transition: .22s;
 }
 
 #checkpoint.show {
@@ -136,37 +172,40 @@ canvas {
         scale(1);
 }
 
-/* ================= JOYSTICK ================= */
+/* =========================
+   JOYSTICK
+========================= */
 
 #joystick {
     position: fixed;
 
     left: 50%;
-    bottom: 55px;
+    bottom:
+        calc(24px + var(--safe-bottom));
 
     transform: translateX(-50%);
 
-    width: 150px;
-    height: 150px;
+    width: 168px;
+    height: 168px;
 
     border-radius: 50%;
+
+    z-index: 20;
+
+    border:
+        2px solid rgba(100, 220, 255, .34);
 
     background:
         radial-gradient(
             circle,
-            rgba(255,255,255,.10),
-            rgba(40,170,255,.04) 60%,
-            rgba(0,0,0,.15)
+            rgba(255,255,255,.12),
+            rgba(40,170,255,.05) 58%,
+            rgba(0,0,0,.20)
         );
 
-    border:
-        2px solid rgba(100,220,255,.35);
-
     box-shadow:
-        0 0 30px rgba(0,200,255,.12),
-        inset 0 0 30px rgba(0,200,255,.08);
-
-    z-index: 20;
+        0 0 32px rgba(0, 200, 255, .14),
+        inset 0 0 35px rgba(0, 200, 255, .10);
 
     touch-action: none;
 }
@@ -175,20 +214,18 @@ canvas {
     content: "";
 
     position: absolute;
-
     left: 50%;
     top: 50%;
 
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 
     border-radius: 50%;
 
     background:
-        rgba(255,255,255,.25);
+        rgba(255,255,255,.28);
 }
 
 #stick {
@@ -197,62 +234,68 @@ canvas {
     left: 50%;
     top: 50%;
 
-    width: 66px;
-    height: 66px;
+    width: 74px;
+    height: 74px;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 
     border-radius: 50%;
+
+    border:
+        2px solid rgba(255,255,255,.72);
 
     background:
         radial-gradient(
             circle at 35% 30%,
-            #9ff4ff,
+            #a4f7ff,
             #21a9df 45%,
             #075d96
         );
 
-    border:
-        2px solid rgba(255,255,255,.65);
-
     box-shadow:
-        0 0 20px rgba(0,210,255,.65),
-        inset 0 0 15px rgba(255,255,255,.25);
+        0 0 24px rgba(0, 210, 255, .70),
+        inset 0 0 18px rgba(255,255,255,.25);
 
     touch-action: none;
+    will-change: transform;
 }
 
 #joystickText {
     position: absolute;
-
+    left: 0;
+    bottom: -22px;
     width: 100%;
-
-    bottom: -25px;
 
     text-align: center;
 
-    font-size: 10px;
+    color: rgba(255,255,255,.45);
+    font-size: 9px;
     letter-spacing: 2px;
-
-    color:
-        rgba(255,255,255,.45);
 }
 
-/* ================= SCREENS ================= */
+/* =========================
+   SCREENS
+========================= */
 
 .screen {
     position: fixed;
     inset: 0;
 
+    width: 100%;
+    height: 100dvh;
+
     z-index: 50;
 
     display: flex;
-
     flex-direction: column;
-
-    align-items: center;
     justify-content: center;
+    align-items: center;
+
+    padding:
+        calc(18px + var(--safe-top))
+        calc(18px + var(--safe-right))
+        calc(18px + var(--safe-bottom))
+        calc(18px + var(--safe-left));
 
     text-align: center;
 
@@ -260,22 +303,22 @@ canvas {
         radial-gradient(
             circle at center,
             #10233d 0%,
-            #050914 65%,
+            #050914 62%,
             #02040a 100%
         );
-
-    color: white;
 }
 
 .screen h1 {
     margin: 0;
 
     font-size:
-        clamp(45px, 12vw, 100px);
+        clamp(44px, 15vw, 92px);
 
     font-weight: 1000;
 
-    letter-spacing: 8px;
+    line-height: .92;
+
+    letter-spacing: 6px;
 
     text-shadow:
         4px 0 #00eaff,
@@ -284,29 +327,63 @@ canvas {
 }
 
 .screen p {
-    max-width: 520px;
+    width: min(92vw, 520px);
 
-    padding: 0 25px;
+    margin: 14px 0;
 
     color: #9eb1c7;
 
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.55;
 }
 
-#startRecord {
-    color: #ffd84d;
-    font-weight: bold;
-    font-size: 17px;
+.panel {
+    width: min(92vw, 390px);
+
+    padding: 20px;
+
+    border:
+        1px solid #22516d;
+
+    background:
+        rgba(7, 16, 28, .88);
+
+    border-radius: 16px;
+
+    backdrop-filter: blur(8px);
+}
+
+input {
+    width: 100%;
+    height: 48px;
+
+    margin: 6px 0;
+
+    padding: 0 14px;
+
+    border-radius: 10px;
+
+    border:
+        1px solid #2b516f;
+
+    background: #081321;
+
+    color: white;
+
+    outline: none;
+
+    font-size: 16px;
+    touch-action: manipulation;
 }
 
 button {
-    border: none;
+    min-height: 46px;
 
-    margin-top: 20px;
-
-    padding: 15px 35px;
-
+    border: 0;
     border-radius: 10px;
+
+    padding:
+        12px 18px;
 
     background:
         linear-gradient(
@@ -319,2273 +396,127 @@ button {
 
     font-weight: 900;
 
-    font-size: 16px;
+    font-size: 14px;
 
-    letter-spacing: 2px;
-
-    box-shadow:
-        0 0 30px
-        rgba(0,180,255,.35);
+    letter-spacing: 1px;
 
     cursor: pointer;
+
+    box-shadow:
+        0 0 24px
+        rgba(0, 102, 255, .30);
+
+    touch-action: manipulation;
 }
 
 button:active {
-    transform: scale(.95);
+    transform: scale(.97);
+}
+
+.row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.row button {
+    flex: 1 1 140px;
 }
 
 .hidden {
     display: none !important;
 }
 
-/* ================= GAME OVER ================= */
-
-#gameOver h1 {
-    color: #ff477e;
-
-    text-shadow:
-        3px 0 #ff0000,
-        -3px 0 #00ffff,
-        0 0 30px #ff0055;
+.small {
+    color: #7f98ad;
+    font-size: 12px;
 }
 
-#finalScore {
-    font-size: 22px;
-    color: white;
-    font-weight: bold;
-}
-
-#newRecord {
+.gold {
     color: #ffd84d;
-    font-size: 18px;
-    font-weight: 900;
-    min-height: 25px;
+    font-weight: 800;
 }
 
-/* ================= MOBILE ================= */
+.danger {
+    color: #ff668a !important;
+}
 
-@media (max-height: 600px) {
+#message {
+    min-height: 22px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #90dfff;
+}
+
+#leaderboard {
+    width: min(94vw, 600px);
+    max-height: 63dvh;
+    overflow: auto;
+    margin-top: 12px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.table th,
+.table td {
+    padding: 9px 6px;
+    border-bottom: 1px solid #163248;
+}
+
+.table th {
+    color: #66ddff;
+    text-align: left;
+}
+
+/* =========================
+   LANDSCAPE
+========================= */
+
+@media (orientation: landscape) and (max-height: 520px) {
 
     #joystick {
-        bottom: 18px;
         width: 125px;
         height: 125px;
+        bottom: 12px;
     }
 
     #stick {
-        width: 58px;
-        height: 58px;
+        width: 56px;
+        height: 56px;
+    }
+
+    #joystickText {
+        display: none;
     }
 
     #hud {
-        padding: 10px;
+        padding-top: 7px;
     }
 }
-</style>
-</head>
 
-<body>
+/* =========================
+   SMALL PHONES
+========================= */
 
-<canvas id="game"></canvas>
+@media (max-height: 680px) and (orientation: portrait) {
 
-<!-- ================= HUD ================= -->
-
-<div id="hud">
-
-    <div id="gameName">
-        SKY DODGE
-    </div>
-
-    <div id="score">
-        0
-    </div>
-
-    <div id="record">
-        🏆 РЕКОРД: <span id="recordValue">0</span>
-    </div>
-
-    <div id="level">
-        УРОВЕНЬ 1
-    </div>
-
-    <div id="lives">
-        ❤️ ❤️ ❤️
-    </div>
-
-</div>
-
-
-<!-- ================= CHECKPOINT ================= -->
-
-<div id="checkpoint">
-    CHECKPOINT
-
-    <div
-        style="
-        font-size:15px;
-        letter-spacing:2px;
-        margin-top:8px"
-    >
-        УРОВЕНЬ ПРОЙДЕН
-    </div>
-</div>
-
-
-<!-- ================= JOYSTICK ================= -->
-
-<div id="joystick">
-
-    <div id="stick"></div>
-
-    <div id="joystickText">
-        УПРАВЛЕНИЕ
-    </div>
-
-</div>
-
-
-<!-- ================= START ================= -->
-
-<div id="startScreen" class="screen">
-
-    <h1>
-        SKY<br>DODGE
-    </h1>
-
-    <p>
-        Управляй самолётом джойстиком.<br>
-        Уворачивайся от вражеских самолётов.<br>
-        Каждые 50 очков открывается новый уровень.
-    </p>
-
-    <div id="startRecord">
-        🏆 ТВОЙ РЕКОРД:
-        <span id="startRecordValue">0</span>
-    </div>
-
-    <button id="startButton">
-        НАЧАТЬ ПОЛЁТ
-    </button>
-
-</div>
-
-
-<!-- ================= GAME OVER ================= -->
-
-<div id="gameOver" class="screen hidden">
-
-    <h1>
-        РАЗБИЛСЯ
-    </h1>
-
-    <p id="finalScore">
-        Счёт: 0
-    </p>
-
-    <div id="newRecord"></div>
-
-    <p>
-        Уровень:
-        <b id="finalLevel">1</b>
-    </p>
-
-    <button id="restartButton">
-        ПОВТОРИТЬ
-    </button>
-
-</div>
-
-
-<script>
-
-/* =========================================================
-   CANVAS
-========================================================= */
-
-const canvas =
-    document.getElementById("game");
-
-const ctx =
-    canvas.getContext("2d");
-
-let W = 0;
-let H = 0;
-let DPR = 1;
-
-function resize() {
-
-    DPR =
-        Math.min(
-            window.devicePixelRatio || 1,
-            2
-        );
-
-    W =
-        window.innerWidth;
-
-    H =
-        window.innerHeight;
-
-    canvas.width =
-        W * DPR;
-
-    canvas.height =
-        H * DPR;
-
-    canvas.style.width =
-        W + "px";
-
-    canvas.style.height =
-        H + "px";
-
-    ctx.setTransform(
-        DPR,
-        0,
-        0,
-        DPR,
-        0,
-        0
-    );
-}
-
-window.addEventListener(
-    "resize",
-    resize
-);
-
-resize();
-
-
-/* =========================================================
-   RECORD
-========================================================= */
-
-/*
-    Рекорд хранится прямо
-    в браузере пользователя.
-
-    Даже после:
-    - закрытия сайта;
-    - перезагрузки;
-    - закрытия браузера
-
-    он останется.
-*/
-
-let bestScore =
-    Number(
-        localStorage.getItem(
-            "skyDodgeBestScore"
-        )
-    ) || 0;
-
-
-function updateRecordUI() {
-
-    document.getElementById(
-        "recordValue"
-    ).textContent =
-        bestScore;
-
-    document.getElementById(
-        "startRecordValue"
-    ).textContent =
-        bestScore;
-
-}
-
-
-updateRecordUI();
-
-
-/* =========================================================
-   GAME
-========================================================= */
-
-let gameRunning = false;
-
-let score = 0;
-
-let level = 1;
-
-let lives = 3;
-
-let lastTime = 0;
-
-let spawnTimer = 0;
-
-let checkpointTimer = 0;
-
-let screenShake = 0;
-
-
-/* =========================================================
-   PLAYER
-========================================================= */
-
-const player = {
-
-    x: 0,
-    y: 0,
-
-    vx: 0,
-    vy: 0,
-
-    radius: 19,
-
-    angle: 0,
-
-    invincible: 0
-
-};
-
-
-/* =========================================================
-   JOYSTICK
-========================================================= */
-
-const joystick =
-    document.getElementById(
-        "joystick"
-    );
-
-const stick =
-    document.getElementById(
-        "stick"
-    );
-
-let joy = {
-
-    active: false,
-
-    pointerId: null,
-
-    x: 0,
-
-    y: 0,
-
-    max: 47
-
-};
-
-
-function joystickCenter() {
-
-    const rect =
-        joystick.getBoundingClientRect();
-
-    return {
-
-        x:
-            rect.left +
-            rect.width / 2,
-
-        y:
-            rect.top +
-            rect.height / 2
-
-    };
-
-}
-
-
-function updateJoystick(
-    clientX,
-    clientY
-) {
-
-    const center =
-        joystickCenter();
-
-    let dx =
-        clientX -
-        center.x;
-
-    let dy =
-        clientY -
-        center.y;
-
-    const distance =
-        Math.hypot(dx, dy);
-
-    if (
-        distance >
-        joy.max
-    ) {
-
-        dx =
-            dx / distance *
-            joy.max;
-
-        dy =
-            dy / distance *
-            joy.max;
-
+    #joystick {
+        width: 148px;
+        height: 148px;
+        bottom:
+            calc(15px + var(--safe-bottom));
     }
 
-    joy.x =
-        dx / joy.max;
-
-    joy.y =
-        dy / joy.max;
-
-    stick.style.transform =
-        `translate(
-            calc(-50% + ${dx}px),
-            calc(-50% + ${dy}px)
-        )`;
-
-}
-
-
-function resetJoystick() {
-
-    joy.active = false;
-
-    joy.pointerId = null;
-
-    joy.x = 0;
-    joy.y = 0;
-
-    stick.style.transform =
-        "translate(-50%, -50%)";
-
-}
-
-
-joystick.addEventListener(
-    "pointerdown",
-    function(e) {
-
-        e.preventDefault();
-
-        joy.active = true;
-
-        joy.pointerId =
-            e.pointerId;
-
-        joystick.setPointerCapture(
-            e.pointerId
-        );
-
-        updateJoystick(
-            e.clientX,
-            e.clientY
-        );
-
-    }
-);
-
-
-joystick.addEventListener(
-    "pointermove",
-    function(e) {
-
-        if (!joy.active)
-            return;
-
-        if (
-            e.pointerId !==
-            joy.pointerId
-        )
-            return;
-
-        e.preventDefault();
-
-        updateJoystick(
-            e.clientX,
-            e.clientY
-        );
-
-    }
-);
-
-
-joystick.addEventListener(
-    "pointerup",
-    function(e) {
-
-        if (
-            e.pointerId ===
-            joy.pointerId
-        ) {
-
-            resetJoystick();
-
-        }
-
-    }
-);
-
-
-joystick.addEventListener(
-    "pointercancel",
-    resetJoystick
-);
-
-
-/* =========================================================
-   KEYBOARD
-========================================================= */
-
-const keys = {};
-
-window.addEventListener(
-    "keydown",
-    e => {
-
-        keys[
-            e.key.toLowerCase()
-        ] = true;
-
-    }
-);
-
-
-window.addEventListener(
-    "keyup",
-    e => {
-
-        keys[
-            e.key.toLowerCase()
-        ] = false;
-
-    }
-);
-
-
-function getKeyboardInput() {
-
-    let x = 0;
-    let y = 0;
-
-    if (
-        keys["a"] ||
-        keys["arrowleft"]
-    )
-        x -= 1;
-
-    if (
-        keys["d"] ||
-        keys["arrowright"]
-    )
-        x += 1;
-
-    if (
-        keys["w"] ||
-        keys["arrowup"]
-    )
-        y -= 1;
-
-    if (
-        keys["s"] ||
-        keys["arrowdown"]
-    )
-        y += 1;
-
-    return {
-        x,
-        y
-    };
-
-}
-
-
-/* =========================================================
-   ENEMIES
-========================================================= */
-
-let enemies = [];
-
-
-function spawnEnemy() {
-
-    const side =
-        Math.floor(
-            Math.random() * 4
-        );
-
-    let x;
-    let y;
-
-    if (side === 0) {
-
-        x =
-            Math.random() * W;
-
-        y = -80;
-
+    #stick {
+        width: 66px;
+        height: 66px;
     }
 
-    else if (side === 1) {
-
-        x = W + 80;
-
-        y =
-            Math.random() * H;
-
-    }
-
-    else if (side === 2) {
-
-        x =
-            Math.random() * W;
-
-        y = H + 80;
-
-    }
-
-    else {
-
-        x = -80;
-
-        y =
-            Math.random() * H;
-
-    }
-
-
-    const targetAngle =
-        Math.atan2(
-            player.y - y,
-            player.x - x
-        );
-
-
-    /*
-       Каждый уровень
-       делает врагов немного быстрее.
-    */
-
-    const speed =
-        1.7 +
-        level * 0.42 +
-        Math.random() * 1.1;
-
-
-    enemies.push({
-
-        x,
-        y,
-
-        vx:
-            Math.cos(targetAngle) *
-            speed,
-
-        vy:
-            Math.sin(targetAngle) *
-            speed,
-
-        radius: 17,
-
-        angle: targetAngle,
-
-        speed,
-
-        color:
-            Math.random() > .5
-            ? "#ff3864"
-            : "#ff8a3d"
-
-    });
-
-}
-
-
-/* =========================================================
-   PARTICLES
-========================================================= */
-
-let particles = [];
-
-
-function particleExplosion(
-    x,
-    y
-) {
-
-    for (
-        let i = 0;
-        i < 35;
-        i++
-    ) {
-
-        const angle =
-            Math.random() *
-            Math.PI *
-            2;
-
-        const speed =
-            1 +
-            Math.random() * 5;
-
-        particles.push({
-
-            x,
-            y,
-
-            vx:
-                Math.cos(angle) *
-                speed,
-
-            vy:
-                Math.sin(angle) *
-                speed,
-
-            life: 1,
-
-            size:
-                2 +
-                Math.random() * 4,
-
-            color:
-                Math.random() > .5
-                ? "#00eaff"
-                : "#ffffff"
-
-        });
-
-    }
-
-}
-
-
-/* =========================================================
-   BACKGROUND
-========================================================= */
-
-let clouds = [];
-
-for (
-    let i = 0;
-    i < 35;
-    i++
-) {
-
-    clouds.push({
-
-        x:
-            Math.random() * W,
-
-        y:
-            Math.random() * H,
-
-        size:
-            20 +
-            Math.random() * 70,
-
-        speed:
-            .3 +
-            Math.random() * 1.5
-
-    });
-
-}
-
-
-/* =========================================================
-   DRAW BACKGROUND
-========================================================= */
-
-function drawBackground(dt) {
-
-    const gradient =
-        ctx.createLinearGradient(
-            0,
-            0,
-            0,
-            H
-        );
-
-    gradient.addColorStop(
-        0,
-        "#07172d"
-    );
-
-    gradient.addColorStop(
-        1,
-        "#020710"
-    );
-
-    ctx.fillStyle =
-        gradient;
-
-    ctx.fillRect(
-        0,
-        0,
-        W,
-        H
-    );
-
-
-    ctx.save();
-
-    ctx.globalAlpha =
-        .22;
-
-
-    /*
-       Скорость полос тоже
-       немного возрастает
-       с уровнем.
-    */
-
-    const lineSpeed =
-        20 +
-        level * 3;
-
-
-    for (
-        let i = 0;
-        i < 80;
-        i++
-    ) {
-
-        const x =
-            (i * 97 +
-            gameTime *
-            lineSpeed)
-            %
-            (W + 100);
-
-
-        const y =
-            (i * 53) %
-            H;
-
-
-        const length =
-            15 +
-            (i % 5) * 10;
-
-
-        ctx.strokeStyle =
-            i % 3 === 0
-            ? "#5bdcff"
-            : "#ffffff";
-
-
-        ctx.lineWidth = 1;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x,
-            y
-        );
-
-        ctx.lineTo(
-            x,
-            y + length
-        );
-
-        ctx.stroke();
-
-    }
-
-    ctx.restore();
-
-
-    for (
-        const cloud of clouds
-    ) {
-
-        cloud.y +=
-            cloud.speed *
-            dt *
-            .04;
-
-
-        if (
-            cloud.y >
-            H + 100
-        ) {
-
-            cloud.y = -100;
-
-        }
-
-
-        ctx.save();
-
-        ctx.globalAlpha =
-            .07;
-
-        ctx.fillStyle =
-            "#ffffff";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            cloud.x,
-            cloud.y,
-            cloud.size,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.arc(
-            cloud.x +
-            cloud.size * .8,
-            cloud.y + 5,
-            cloud.size * .65,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.arc(
-            cloud.x -
-            cloud.size * .7,
-            cloud.y + 8,
-            cloud.size * .55,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        ctx.restore();
-
-    }
-
-}
-
-
-/* =========================================================
-   DRAW PLAYER
-========================================================= */
-
-function drawPlayer() {
-
-    ctx.save();
-
-    ctx.translate(
-        player.x,
-        player.y
-    );
-
-    ctx.rotate(
-        player.angle
-    );
-
-
-    ctx.shadowBlur = 25;
-
-    ctx.shadowColor =
-        "#00eaff";
-
-
-    /*
-       Корпус
-    */
-
-    ctx.fillStyle =
-        "#d9f7ff";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        28,
-        0
-    );
-
-    ctx.lineTo(
-        -17,
-        -13
-    );
-
-    ctx.lineTo(
-        -10,
-        0
-    );
-
-    ctx.lineTo(
-        -17,
-        13
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    /*
-       Крылья
-    */
-
-    ctx.fillStyle =
-        "#26a9e0";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        5,
-        0
-    );
-
-    ctx.lineTo(
-        -16,
-        -26
-    );
-
-    ctx.lineTo(
-        -10,
-        -5
-    );
-
-    ctx.lineTo(
-        -10,
-        5
-    );
-
-    ctx.lineTo(
-        -16,
-        26
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    /*
-       Кабина
-    */
-
-    ctx.fillStyle =
-        "#102e45";
-
-    ctx.beginPath();
-
-    ctx.ellipse(
-        9,
-        0,
-        9,
-        5,
-        0,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    /*
-       Двигатель
-    */
-
-    ctx.fillStyle =
-        "#00eaff";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        -15,
-        -5
-    );
-
-    ctx.lineTo(
-        -30,
-        0
-    );
-
-    ctx.lineTo(
-        -15,
-        5
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    ctx.restore();
-
-}
-
-
-/* =========================================================
-   DRAW ENEMY
-========================================================= */
-
-function drawEnemy(enemy) {
-
-    ctx.save();
-
-    ctx.translate(
-        enemy.x,
-        enemy.y
-    );
-
-    ctx.rotate(
-        enemy.angle
-    );
-
-
-    ctx.shadowBlur =
-        15;
-
-    ctx.shadowColor =
-        enemy.color;
-
-
-    ctx.fillStyle =
-        enemy.color;
-
-
-    /*
-       Корпус
-    */
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        25,
-        0
-    );
-
-    ctx.lineTo(
-        -18,
-        -11
-    );
-
-    ctx.lineTo(
-        -10,
-        0
-    );
-
-    ctx.lineTo(
-        -18,
-        11
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    /*
-       Крылья
-    */
-
-    ctx.fillStyle =
-        "#7e172d";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        5,
-        0
-    );
-
-    ctx.lineTo(
-        -15,
-        -23
-    );
-
-    ctx.lineTo(
-        -8,
-        -3
-    );
-
-    ctx.lineTo(
-        -8,
-        3
-    );
-
-    ctx.lineTo(
-        -15,
-        23
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    /*
-       Кабина
-    */
-
-    ctx.fillStyle =
-        "#1b050a";
-
-    ctx.beginPath();
-
-    ctx.ellipse(
-        8,
-        0,
-        8,
-        4,
-        0,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    ctx.restore();
-
-}
-
-
-/* =========================================================
-   COLLISION
-========================================================= */
-
-function collision(
-    a,
-    b
-) {
-
-    return Math.hypot(
-        a.x - b.x,
-        a.y - b.y
-    )
-    <
-    a.radius +
-    b.radius;
-
-}
-
-
-/* =========================================================
-   UPDATE
-========================================================= */
-
-let gameTime = 0;
-
-
-function update(dt) {
-
-    if (!gameRunning)
-        return;
-
-
-    gameTime += dt;
-
-
-    /*
-       =========================
-       УПРАВЛЕНИЕ
-       =========================
-    */
-
-    let inputX =
-        joy.x;
-
-    let inputY =
-        joy.y;
-
-
-    const keyboard =
-        getKeyboardInput();
-
-
-    if (
-        keyboard.x !== 0 ||
-        keyboard.y !== 0
-    ) {
-
-        inputX =
-            keyboard.x;
-
-        inputY =
-            keyboard.y;
-
-    }
-
-
-    const controlPower =
-        6.5;
-
-
-    player.vx +=
-        (
-            inputX *
-            controlPower -
-            player.vx
-        ) * .16;
-
-
-    player.vy +=
-        (
-            inputY *
-            controlPower -
-            player.vy
-        ) * .16;
-
-
-    player.x +=
-        player.vx *
-        dt *
-        .06;
-
-
-    player.y +=
-        player.vy *
-        dt *
-        .06;
-
-
-    /*
-       Не выпускаем самолёт
-       за границы экрана
-    */
-
-    const margin =
-        25;
-
-
-    if (
-        player.x <
-        margin
-    ) {
-
-        player.x =
-            margin;
-
-        player.vx *=
-            -.25;
-
-    }
-
-
-    if (
-        player.x >
-        W - margin
-    ) {
-
-        player.x =
-            W - margin;
-
-        player.vx *=
-            -.25;
-
-    }
-
-
-    if (
-        player.y <
-        margin
-    ) {
-
-        player.y =
-            margin;
-
-        player.vy *=
-            -.25;
-
-    }
-
-
-    if (
-        player.y >
-        H - margin
-    ) {
-
-        player.y =
-            H - margin;
-
-        player.vy *=
-            -.25;
-
-    }
-
-
-    /*
-       Наклон самолёта
-    */
-
-    if (
-        Math.abs(player.vx) +
-        Math.abs(player.vy) > .2
-    ) {
-
-        player.angle =
-            Math.atan2(
-                player.vy,
-                player.vx
-            );
-
-    }
-
-
-    /*
-       =========================
-       ВРАГИ
-       =========================
-    */
-
-    spawnTimer += dt;
-
-
-    /*
-       Самолётов чуть меньше.
-
-       На первом уровне:
-       примерно один новый
-       самолёт раз в 1.2 секунды.
-
-       На следующих уровнях
-       появление ускоряется.
-    */
-
-    const spawnDelay =
-        Math.max(
-            420,
-            1250 -
-            level * 55
-        );
-
-
-    if (
-        spawnTimer >
-        spawnDelay
-    ) {
-
-        spawnTimer = 0;
-
-
-        /*
-           Максимум 3 врага
-           за один момент.
-        */
-
-        const amount =
-            Math.min(
-                1 +
-                Math.floor(level / 4),
-                3
-            );
-
-
-        for (
-            let i = 0;
-            i < amount;
-            i++
-        ) {
-
-            spawnEnemy();
-
-        }
-
-    }
-
-
-    /*
-       Движение врагов
-    */
-
-    for (
-        let i = enemies.length - 1;
-        i >= 0;
-        i--
-    ) {
-
-        const enemy =
-            enemies[i];
-
-
-        const desiredAngle =
-            Math.atan2(
-                player.y -
-                enemy.y,
-
-                player.x -
-                enemy.x
-            );
-
-
-        let difference =
-            desiredAngle -
-            enemy.angle;
-
-
-        while (
-            difference >
-            Math.PI
-        ) {
-
-            difference -=
-                Math.PI * 2;
-
-        }
-
-
-        while (
-            difference <
-            -Math.PI
-        ) {
-
-            difference +=
-                Math.PI * 2;
-
-        }
-
-
-        enemy.angle +=
-            difference *
-            .012 *
-            dt;
-
-
-        enemy.vx =
-            Math.cos(
-                enemy.angle
-            ) *
-            enemy.speed;
-
-
-        enemy.vy =
-            Math.sin(
-                enemy.angle
-            ) *
-            enemy.speed;
-
-
-        enemy.x +=
-            enemy.vx *
-            dt *
-            .06;
-
-
-        enemy.y +=
-            enemy.vy *
-            dt *
-            .06;
-
-
-        /*
-           ======================
-           СТОЛКНОВЕНИЕ
-           ======================
-        */
-
-        if (
-            player.invincible <= 0 &&
-            collision(
-                player,
-                enemy
-            )
-        ) {
-
-            player.invincible =
-                1600;
-
-            lives--;
-
-            particleExplosion(
-                player.x,
-                player.y
-            );
-
-            screenShake =
-                350;
-
-            enemies.splice(
-                i,
-                1
-            );
-
-            updateHUD();
-
-
-            if (
-                lives <= 0
-            ) {
-
-                gameOver();
-
-                return;
-
-            }
-
-        }
-
-
-        /*
-           Самолёт улетел —
-           получаем 10 очков
-        */
-
-        if (
-            enemy.x < -150 ||
-            enemy.x > W + 150 ||
-            enemy.y < -150 ||
-            enemy.y > H + 150
-        ) {
-
-            enemies.splice(
-                i,
-                1
-            );
-
-
-            score += 10;
-
-            checkLevel();
-
-        }
-
-    }
-
-
-    if (
-        player.invincible > 0
-    ) {
-
-        player.invincible -=
-            dt;
-
-    }
-
-
-    /*
-       =========================
-       ЧАСТИЦЫ
-       =========================
-    */
-
-    for (
-        let i = particles.length - 1;
-        i >= 0;
-        i--
-    ) {
-
-        const p =
-            particles[i];
-
-
-        p.x +=
-            p.vx *
-            dt *
-            .05;
-
-
-        p.y +=
-            p.vy *
-            dt *
-            .05;
-
-
-        p.life -=
-            dt / 700;
-
-
-        if (
-            p.life <= 0
-        ) {
-
-            particles.splice(
-                i,
-                1
-            );
-
-        }
-
-    }
-
-
-    /*
-       Дополнительные очки
-       за время полёта
-    */
-
-    checkpointTimer += dt;
-
-
-    if (
-        checkpointTimer >
-        1000
-    ) {
-
-        checkpointTimer = 0;
-
-        score += 5;
-
-        checkLevel();
-
-    }
-
-
-    /*
-       Сохраняем рекорд
-       сразу во время игры.
-    */
-
-    saveBestScore();
-
-    updateHUD();
-
-}
-
-
-/* =========================================================
-   LEVELS
-========================================================= */
-
-function checkLevel() {
-
-    /*
-       КАЖДЫЕ 50 ОЧКОВ —
-       НОВЫЙ УРОВЕНЬ.
-
-       0-49   = уровень 1
-       50-99  = уровень 2
-       100-149 = уровень 3
-       и т.д.
-    */
-
-    const newLevel =
-        Math.floor(
-            score / 50
-        ) + 1;
-
-
-    if (
-        newLevel > level
-    ) {
-
-        level =
-            newLevel;
-
-
-        showCheckpoint();
-
-
-        /*
-           Убираем половину
-           врагов при checkpoint.
-        */
-
-        enemies.splice(
-            0,
-            Math.floor(
-                enemies.length / 2
-            )
-        );
-
-
-        /*
-           Небольшая защита
-           после нового уровня.
-        */
-
-        player.invincible =
-            1800;
-
-    }
-
-}
-
-
-/* =========================================================
-   SAVE BEST SCORE
-========================================================= */
-
-function saveBestScore() {
-
-    if (
-        score > bestScore
-    ) {
-
-        bestScore =
-            Math.floor(score);
-
-
-        localStorage.setItem(
-            "skyDodgeBestScore",
-            bestScore
-        );
-
-
-        updateRecordUI();
-
-    }
-
-}
-
-
-/* =========================================================
-   CHECKPOINT MESSAGE
-========================================================= */
-
-function showCheckpoint() {
-
-    const element =
-        document.getElementById(
-            "checkpoint"
-        );
-
-
-    element.innerHTML =
-        `
-        CHECKPOINT
-
-        <div
-            style="
-            font-size:15px;
-            letter-spacing:2px;
-            margin-top:8px"
-        >
-            УРОВЕНЬ ${level}
-        </div>
-        `;
-
-
-    element.classList.add(
-        "show"
-    );
-
-
-    setTimeout(
-        () => {
-
-            element.classList.remove(
-                "show"
-            );
-
-        },
-        1700
-    );
-
-}
-
-
-/* =========================================================
-   HUD
-========================================================= */
-
-function updateHUD() {
-
-    document.getElementById(
-        "score"
-    ).textContent =
-        Math.floor(
-            score
-        );
-
-
-    document.getElementById(
-        "recordValue"
-    ).textContent =
-        bestScore;
-
-
-    document.getElementById(
-        "level"
-    ).textContent =
-        "УРОВЕНЬ " +
-        level;
-
-
-    document.getElementById(
-        "lives"
-    ).textContent =
-
-        "❤️ ".repeat(
-            lives
-        )
-
-        +
-
-        "🖤 ".repeat(
-            Math.max(
-                0,
-                3 - lives
-            )
-        );
-
-}
-
-
-/* =========================================================
-   DRAW
-========================================================= */
-
-function draw() {
-
-    ctx.save();
-
-
-    /*
-       Screen shake
-    */
-
-    if (
-        screenShake > 0
-    ) {
-
-        const shake =
-            screenShake *
-            .04;
-
-
-        ctx.translate(
-            (
-                Math.random() -
-                .5
-            ) * shake,
-
-            (
-                Math.random() -
-                .5
-            ) * shake
-        );
-
-
-        screenShake -=
-            16;
-
-    }
-
-
-    drawBackground(
-        16
-    );
-
-
-    /*
-       Частицы
-    */
-
-    for (
-        const p of particles
-    ) {
-
-        ctx.globalAlpha =
-            Math.max(
-                0,
-                p.life
-            );
-
-
-        ctx.fillStyle =
-            p.color;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            p.x,
-            p.y,
-            p.size,
-            0,
-            Math.PI * 2
-        );
-
-
-        ctx.fill();
-
-    }
-
-
-    ctx.globalAlpha =
-        1;
-
-
-    /*
-       Враги
-    */
-
-    for (
-        const enemy of enemies
-    ) {
-
-        drawEnemy(
-            enemy
-        );
-
-    }
-
-
-    /*
-       Игрок
-    */
-
-    if (
-        player.invincible <= 0 ||
-
-        Math.floor(
-            player.invincible /
-            100
-        ) % 2 === 0
-    ) {
-
-        drawPlayer();
-
-    }
-
-
-    /*
-       Круг вокруг игрока
-    */
-
-    ctx.save();
-
-    ctx.globalAlpha =
-        .18;
-
-    ctx.strokeStyle =
-        "#00eaff";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        player.x,
-        player.y,
-        30,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.stroke();
-
-    ctx.restore();
-
-
-    ctx.restore();
-
-}
-
-
-/* =========================================================
-   GAME LOOP
-========================================================= */
-
-function loop(timestamp) {
-
-    if (!lastTime) {
-
-        lastTime =
-            timestamp;
-
-    }
-
-
-    const dt =
-        Math.min(
-            timestamp -
-            lastTime,
-
-            40
-        );
-
-
-    lastTime =
-        timestamp;
-
-
-    update(
-        dt
-    );
-
-
-    draw();
-
-
-    requestAnimationFrame(
-        loop
-    );
-
-}
-
-
-/* =========================================================
-   START GAME
-========================================================= */
-
-function startGame() {
-
-    document
-        .getElementById(
-            "startScreen"
-        )
-        .classList.add(
-            "hidden"
-        );
-
-
-    document
-        .getElementById(
-            "gameOver"
-        )
-        .classList.add(
-            "hidden"
-        );
-
-
-    score = 0;
-
-    level = 1;
-
-    lives = 3;
-
-    enemies = [];
-
-    particles = [];
-
-    spawnTimer = 0;
-
-    checkpointTimer = 0;
-
-    player.x =
-        W / 2;
-
-    player.y =
-        H / 2;
-
-    player.vx = 0;
-
-    player.vy = 0;
-
-    player.angle = 0;
-
-    player.invincible =
-        1200;
-
-
-    gameRunning =
-        true;
-
-
-    resetJoystick();
-
-    updateHUD();
-
-}
-
-
-/* =========================================================
-   GAME OVER
-========================================================= */
-
-function gameOver() {
-
-    gameRunning =
-        false;
-
-
-    resetJoystick();
-
-
-    /*
-       Сохраняем последний результат
-       ещё раз перед окончанием игры.
-    */
-
-    saveBestScore();
-
-
-    document.getElementById(
-        "finalScore"
-    ).textContent =
-        "Счёт: " +
-        Math.floor(
-            score
-        );
-
-
-    document.getElementById(
-        "finalLevel"
-    ).textContent =
-        level;
-
-
-    const newRecord =
-        document.getElementById(
-            "newRecord"
-        );
-
-
-    if (
-        score >= bestScore &&
-        score > 0
-    ) {
-
-        newRecord.textContent =
-            "🏆 НОВЫЙ РЕКОРД!";
-
-    }
-
-    else {
-
-        newRecord.textContent =
-            "🏆 Рекорд: " +
-            bestScore;
-
-    }
-
-
-    document
-        .getElementById(
-            "gameOver"
-        )
-        .classList.remove(
-            "hidden"
-        );
-
-}
-
-
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-document
-    .getElementById(
-        "startButton"
-    )
-    .addEventListener(
-        "click",
-        startGame
-    );
-
-
-document
-    .getElementById(
-        "restartButton"
-    )
-    .addEventListener(
-        "click",
-        startGame
-    );
-
-
-/* =========================================================
-   MOBILE PREVENT SCROLL
-========================================================= */
-
-document.addEventListener(
-    "touchmove",
-    e => {
-
-        e.preventDefault();
-
-    },
-    {
-        passive: false
-    }
-);
-
-
-/* =========================================================
-   INIT
-========================================================= */
-
-updateRecordUI();
-
-updateHUD();
-
-requestAnimationFrame(
-    loop
-);
-
-</script>
-
-</body>
-</html>
+    .
 ```
