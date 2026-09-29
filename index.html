@@ -518,5 +518,2820 @@ button:active {
         height: 66px;
     }
 
-    .
+    .screen p {
+        margin: 10px 0;
+        font-size: 13px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud">
+
+    <div id="gameName">
+        SKY DODGE
+    </div>
+
+    <div id="score">
+        0
+    </div>
+
+    <div id="record">
+        🏆 РЕКОРД:
+        <span id="recordValue">0</span>
+    </div>
+
+    <div id="level">
+        УРОВЕНЬ 1
+    </div>
+
+    <div id="lives">
+        ❤️ ❤️ ❤️
+    </div>
+
+</div>
+
+<div id="userBox">
+    <span id="userLabel"></span>
+    <br>
+    <button id="logoutBtn" class="hidden">
+        Выйти
+    </button>
+</div>
+
+<div id="checkpoint">
+
+    CHECKPOINT
+
+    <div
+        id="checkpointSub"
+        style="
+        font-size:14px;
+        letter-spacing:2px;
+        margin-top:8px">
+    </div>
+
+</div>
+
+<div id="joystick">
+
+    <div id="stick"></div>
+
+    <div id="joystickText">
+        УПРАВЛЕНИЕ
+    </div>
+
+</div>
+
+<!-- ================= AUTH ================= -->
+
+<div id="authScreen" class="screen">
+
+    <div class="panel">
+
+        <h1
+            style="
+            font-size:42px;
+            letter-spacing:3px">
+            SKY DODGE
+        </h1>
+
+        <p>
+            Мобильная версия.<br>
+            Джойстик настроен под управление пальцем.
+        </p>
+
+        <input
+            id="username"
+            maxlength="20"
+            autocomplete="username"
+            placeholder="Ник">
+
+        <input
+            id="password"
+            type="password"
+            minlength="6"
+            autocomplete="current-password"
+            placeholder="Пароль">
+
+        <div class="row">
+
+            <button id="registerBtn">
+                РЕГИСТРАЦИЯ
+            </button>
+
+            <button id="loginBtn">
+                ВОЙТИ
+            </button>
+
+        </div>
+
+        <div
+            class="row"
+            style="margin-top:10px">
+
+            <button
+                id="guestBtn"
+                style="background:#16283a">
+                ИГРАТЬ КАК ГОСТЬ
+            </button>
+
+            <button
+                id="leadersBtn"
+                style="background:#16283a">
+                🏆 ЛИДЕРЫ
+            </button>
+
+        </div>
+
+        <div id="message"></div>
+
+    </div>
+
+</div>
+
+<!-- ================= START ================= -->
+
+<div
+    id="startScreen"
+    class="screen hidden">
+
+    <h1>
+        SKY<br>DODGE
+    </h1>
+
+    <p>
+        Веди самолёт пальцем через джойстик.
+        Уворачивайся от врагов.
+        Каждые 50 очков — новый уровень.
+    </p>
+
+    <div
+        id="accountInfo"
+        class="small">
+    </div>
+
+    <button id="startBtn">
+        НАЧАТЬ ПОЛЁТ
+    </button>
+
+    <button
+        id="startLeadersBtn"
+        style="
+        background:#16283a;
+        margin-top:10px">
+        🏆 ТАБЛИЦА ЛИДЕРОВ
+    </button>
+
+</div>
+
+<!-- ================= LEADERBOARD ================= -->
+
+<div
+    id="leaderScreen"
+    class="screen hidden">
+
+    <h1
+        style="
+        font-size:38px;
+        letter-spacing:3px">
+        ТОП-100
+    </h1>
+
+    <div
+        id="leaderboard"
+        class="panel">
+        Загрузка...
+    </div>
+
+    <button id="closeLeadersBtn">
+        НАЗАД
+    </button>
+
+</div>
+
+<!-- ================= GAME OVER ================= -->
+
+<div
+    id="gameOver"
+    class="screen hidden">
+
+    <h1 style="font-size:50px">
+        РАЗБИЛСЯ
+    </h1>
+
+    <p id="finalScore"></p>
+
+    <p id="finalLevel"></p>
+
+    <div
+        id="recordNotice"
+        class="gold">
+    </div>
+
+    <div class="row">
+
+        <button id="restartBtn">
+            ПОВТОРИТЬ
+        </button>
+
+        <button
+            id="gameLeadersBtn"
+            style="background:#16283a">
+            🏆 ЛИДЕРЫ
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+const canvas =
+    document.getElementById("game");
+
+const ctx =
+    canvas.getContext(
+        "2d",
+        {
+            alpha: false
+        }
+    );
+
+let W =
+    window.innerWidth;
+
+let H =
+    window.innerHeight;
+
+let DPR = 1;
+
+
+function resize() {
+
+    W =
+        window.innerWidth;
+
+    H =
+        window.innerHeight;
+
+    DPR =
+        Math.min(
+            window.devicePixelRatio || 1,
+            2
+        );
+
+    canvas.width =
+        Math.floor(
+            W * DPR
+        );
+
+    canvas.height =
+        Math.floor(
+            H * DPR
+        );
+
+    canvas.style.width =
+        W + "px";
+
+    canvas.style.height =
+        H + "px";
+
+    ctx.setTransform(
+        DPR,
+        0,
+        0,
+        DPR,
+        0,
+        0
+    );
+
+
+    if (
+        typeof player !==
+        "undefined"
+    ) {
+
+        player.x =
+            Math.max(
+                25,
+                Math.min(
+                    W - 25,
+                    player.x
+                )
+            );
+
+        player.y =
+            Math.max(
+                25,
+                Math.min(
+                    H - 25,
+                    player.y
+                )
+            );
+
+    }
+
+}
+
+
+window.addEventListener(
+    "resize",
+    resize
+);
+
+
+window.addEventListener(
+    "orientationchange",
+    () => {
+
+        setTimeout(
+            resize,
+            120
+        );
+
+    }
+);
+
+
+resize();
+
+
+/* =========================================================
+   RECORD
+========================================================= */
+
+let bestScore =
+    Number(
+        localStorage.getItem(
+            "skyDodgeBestScore"
+        )
+    ) || 0;
+
+
+function updateRecordUI() {
+
+    document.getElementById(
+        "recordValue"
+    ).textContent =
+        bestScore;
+
+}
+
+
+updateRecordUI();
+
+
+/* =========================================================
+   SERVER API
+========================================================= */
+
+async function api(
+    path,
+    options = {}
+) {
+
+    const response =
+        await fetch(
+            path,
+            {
+                ...options,
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+
+                    ...(options.headers || {})
+                },
+
+                credentials:
+                    "same-origin"
+            }
+        );
+
+
+    const data =
+        await response
+            .json()
+            .catch(
+                () => ({
+                    success: false,
+                    error:
+                        "Ошибка ответа сервера"
+                })
+            );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.error ||
+            "Ошибка сервера"
+        );
+
+    }
+
+
+    return data;
+
+}
+
+
+/* =========================================================
+   USER
+========================================================= */
+
+async function refreshUser() {
+
+    try {
+
+        const data =
+            await api(
+                "/api/me"
+            );
+
+
+        if (
+            data.logged_in
+        ) {
+
+            document.getElementById(
+                "userLabel"
+            ).textContent =
+                "👤 " +
+                data.user.username;
+
+
+            document.getElementById(
+                "logoutBtn"
+            ).classList.remove(
+                "hidden"
+            );
+
+
+            bestScore =
+                Math.max(
+                    bestScore,
+                    Number(
+                        data.score.best_score ||
+                        0
+                    )
+                );
+
+
+            localStorage.setItem(
+                "skyDodgeBestScore",
+                bestScore
+            );
+
+
+            updateRecordUI();
+
+
+            document.getElementById(
+                "accountInfo"
+            ).textContent =
+                "Игрок: " +
+                data.user.username +
+                " • рекорд: " +
+                bestScore;
+
+
+            return true;
+
+        }
+
+    } catch {}
+
+
+
+    document.getElementById(
+        "userLabel"
+    ).textContent =
+        "👤 Гость";
+
+
+    document.getElementById(
+        "logoutBtn"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "accountInfo"
+    ).textContent =
+        "Гостевой режим • локальный рекорд: " +
+        bestScore;
+
+
+    return false;
+
+}
+
+
+function showMessage(
+    text,
+    danger = false
+) {
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+    message.textContent =
+        text;
+
+    message.className =
+        danger
+            ? "danger"
+            : "";
+
+}
+
+
+async function register() {
+
+    const username =
+        document.getElementById(
+            "username"
+        ).value.trim();
+
+
+    const password =
+        document.getElementById(
+            "password"
+        ).value;
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/register",
+                {
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+                            username,
+                            password
+                        })
+                }
+            );
+
+
+        showMessage(
+            data.message ||
+            "Аккаунт создан"
+        );
+
+
+        await refreshUser();
+
+
+        document
+            .getElementById(
+                "authScreen"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+
+    } catch (error) {
+
+        showMessage(
+            error.message,
+            true
+        );
+
+    }
+
+}
+
+
+async function login() {
+
+    const username =
+        document.getElementById(
+            "username"
+        ).value.trim();
+
+
+    const password =
+        document.getElementById(
+            "password"
+        ).value;
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/login",
+                {
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+                            username,
+                            password
+                        })
+                }
+            );
+
+
+        showMessage(
+            data.message ||
+            "Вход выполнен"
+        );
+
+
+        await refreshUser();
+
+
+        document
+            .getElementById(
+                "authScreen"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+
+    } catch (error) {
+
+        showMessage(
+            error.message,
+            true
+        );
+
+    }
+
+}
+
+
+async function logout() {
+
+    try {
+
+        await api(
+            "/api/logout",
+            {
+                method: "POST",
+                body: "{}"
+            }
+        );
+
+    } catch {}
+
+
+    await refreshUser();
+
+}
+
+
+async function submitScore() {
+
+    try {
+
+        return await api(
+            "/api/score",
+            {
+                method: "POST",
+
+                body:
+                    JSON.stringify({
+                        score:
+                            Math.floor(
+                                score
+                            ),
+
+                        level
+                    })
+            }
+        );
+
+    } catch {
+
+        return null;
+
+    }
+
+}
+
+
+/* =========================================================
+   LEADERBOARD
+========================================================= */
+
+async function loadLeaders() {
+
+    const box =
+        document.getElementById(
+            "leaderboard"
+        );
+
+
+    box.textContent =
+        "Загрузка...";
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/leaderboard"
+            );
+
+
+        if (
+            !data.leaderboard.length
+        ) {
+
+            box.innerHTML =
+                '<div class="small">' +
+                'Пока нет результатов.' +
+                '</div>';
+
+            return;
+
+        }
+
+
+        let html = `
+            <table class="table">
+                <tr>
+                    <th>#</th>
+                    <th>Игрок</th>
+                    <th>Счёт</th>
+                    <th>Уровень</th>
+                </tr>
+        `;
+
+
+        for (
+            const playerData
+            of data.leaderboard
+        ) {
+
+            html += `
+                <tr>
+                    <td>
+                        ${playerData.position}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            playerData.username
+                        )}
+                    </td>
+
+                    <td>
+                        ${playerData.score}
+                    </td>
+
+                    <td>
+                        ${playerData.level}
+                    </td>
+                </tr>
+            `;
+
+        }
+
+
+        box.innerHTML =
+            html +
+            "</table>";
+
+
+    } catch {
+
+        box.textContent =
+            "Не удалось загрузить таблицу.";
+
+    }
+
+}
+
+
+function escapeHtml(
+    value
+) {
+
+    return String(
+        value
+    ).replace(
+        /[&<>"']/g,
+        char =>
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char])
+    );
+
+}
+
+
+function openLeaders() {
+
+    document
+        .getElementById(
+            "authScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "startScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "gameOver"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "leaderScreen"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+
+    loadLeaders();
+
+}
+
+
+function closeLeaders() {
+
+    document
+        .getElementById(
+            "leaderScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    if (!gameRunning) {
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   GAME VARIABLES
+========================================================= */
+
+let gameRunning =
+    false;
+
+let score =
+    0;
+
+let level =
+    1;
+
+let lives =
+    3;
+
+let spawnTimer =
+    0;
+
+let timeTimer =
+    0;
+
+let lastTime =
+    0;
+
+let gameTime =
+    0;
+
+let screenShake =
+    0;
+
+
+const player = {
+
+    x:
+        W / 2,
+
+    y:
+        H / 2,
+
+    vx:
+        0,
+
+    vy:
+        0,
+
+    radius:
+        19,
+
+    angle:
+        0,
+
+    invincible:
+        0
+
+};
+
+
+/* =========================================================
+   JOYSTICK
+========================================================= */
+
+const joystick =
+    document.getElementById(
+        "joystick"
+    );
+
+
+const stick =
+    document.getElementById(
+        "stick"
+    );
+
+
+let joy = {
+
+    active:
+        false,
+
+    pointerId:
+        null,
+
+    x:
+        0,
+
+    y:
+        0,
+
+    max:
+        47
+
+};
+
+
+function joystickCenter() {
+
+    const rect =
+        joystick.getBoundingClientRect();
+
+
+    return {
+
+        x:
+            rect.left +
+            rect.width / 2,
+
+        y:
+            rect.top +
+            rect.height / 2
+
+    };
+
+}
+
+
+function updateJoy(
+    clientX,
+    clientY
+) {
+
+    const center =
+        joystickCenter();
+
+
+    let dx =
+        clientX -
+        center.x;
+
+
+    let dy =
+        clientY -
+        center.y;
+
+
+    const distance =
+        Math.hypot(
+            dx,
+            dy
+        );
+
+
+    if (
+        distance >
+        joy.max
+    ) {
+
+        dx =
+            dx /
+            distance *
+            joy.max;
+
+
+        dy =
+            dy /
+            distance *
+            joy.max;
+
+    }
+
+
+    joy.x =
+        dx /
+        joy.max;
+
+
+    joy.y =
+        dy /
+        joy.max;
+
+
+    stick.style.transform =
+        `translate(
+            calc(-50% + ${dx}px),
+            calc(-50% + ${dy}px)
+        )`;
+
+}
+
+
+function resetJoy() {
+
+    joy.active =
+        false;
+
+    joy.pointerId =
+        null;
+
+    joy.x =
+        0;
+
+    joy.y =
+        0;
+
+
+    stick.style.transform =
+        "translate(-50%, -50%)";
+
+}
+
+
+joystick.addEventListener(
+    "pointerdown",
+    event => {
+
+        event.preventDefault();
+
+        joy.active =
+            true;
+
+        joy.pointerId =
+            event.pointerId;
+
+
+        joystick.setPointerCapture(
+            event.pointerId
+        );
+
+
+        updateJoy(
+            event.clientX,
+            event.clientY
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+joystick.addEventListener(
+    "pointermove",
+    event => {
+
+        if (
+            !joy.active ||
+            event.pointerId !==
+                joy.pointerId
+        ) {
+
+            return;
+
+        }
+
+
+        event.preventDefault();
+
+
+        updateJoy(
+            event.clientX,
+            event.clientY
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+joystick.addEventListener(
+    "pointerup",
+    event => {
+
+        if (
+            event.pointerId ===
+            joy.pointerId
+        ) {
+
+            resetJoy();
+
+        }
+
+    }
+);
+
+
+joystick.addEventListener(
+    "pointercancel",
+    resetJoy
+);
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+const keys = {};
+
+
+window.addEventListener(
+    "keydown",
+    event => {
+
+        keys[
+            event.key.toLowerCase()
+        ] = true;
+
+    }
+);
+
+
+window.addEventListener(
+    "keyup",
+    event => {
+
+        keys[
+            event.key.toLowerCase()
+        ] = false;
+
+    }
+);
+
+
+function keyboardInput() {
+
+    let x = 0;
+    let y = 0;
+
+
+    if (
+        keys["a"] ||
+        keys["arrowleft"]
+    ) {
+
+        x -= 1;
+
+    }
+
+
+    if (
+        keys["d"] ||
+        keys["arrowright"]
+    ) {
+
+        x += 1;
+
+    }
+
+
+    if (
+        keys["w"] ||
+        keys["arrowup"]
+    ) {
+
+        y -= 1;
+
+    }
+
+
+    if (
+        keys["s"] ||
+        keys["arrowdown"]
+    ) {
+
+        y += 1;
+
+    }
+
+
+    return {
+        x,
+        y
+    };
+
+}
+
+
+/* =========================================================
+   ENEMIES
+========================================================= */
+
+let enemies = [];
+
+
+function spawnEnemy() {
+
+    const side =
+        Math.floor(
+            Math.random() * 4
+        );
+
+
+    let x;
+    let y;
+
+
+    if (
+        side === 0
+    ) {
+
+        x =
+            Math.random() *
+            W;
+
+        y =
+            -80;
+
+    }
+
+    else if (
+        side === 1
+    ) {
+
+        x =
+            W + 80;
+
+        y =
+            Math.random() *
+            H;
+
+    }
+
+    else if (
+        side === 2
+    ) {
+
+        x =
+            Math.random() *
+            W;
+
+        y =
+            H + 80;
+
+    }
+
+    else {
+
+        x =
+            -80;
+
+        y =
+            Math.random() *
+            H;
+
+    }
+
+
+    const angle =
+        Math.atan2(
+            player.y - y,
+            player.x - x
+        );
+
+
+    const speed =
+        1.7 +
+        level * .42 +
+        Math.random() * 1.1;
+
+
+    enemies.push({
+
+        x,
+        y,
+
+        vx:
+            Math.cos(angle) *
+            speed,
+
+        vy:
+            Math.sin(angle) *
+            speed,
+
+        radius:
+            17,
+
+        angle,
+
+        speed,
+
+        color:
+            Math.random() > .5
+                ? "#ff3864"
+                : "#ff8a3d"
+
+    });
+
+}
+
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+let particles = [];
+
+
+function explode(
+    x,
+    y
+) {
+
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
+
+        const angle =
+            Math.random() *
+            Math.PI *
+            2;
+
+
+        const speed =
+            1 +
+            Math.random() *
+            5;
+
+
+        particles.push({
+
+            x,
+            y,
+
+            vx:
+                Math.cos(angle) *
+                speed,
+
+            vy:
+                Math.sin(angle) *
+                speed,
+
+            life:
+                1,
+
+            size:
+                2 +
+                Math.random() *
+                4,
+
+            color:
+                Math.random() > .5
+                    ? "#00eaff"
+                    : "#ffffff"
+
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   CLOUDS
+========================================================= */
+
+let clouds = [];
+
+
+function resetClouds() {
+
+    clouds = [];
+
+
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
+
+        clouds.push({
+
+            x:
+                Math.random() *
+                W,
+
+            y:
+                Math.random() *
+                H,
+
+            size:
+                20 +
+                Math.random() *
+                70,
+
+            speed:
+                .3 +
+                Math.random() *
+                1.5
+
+        });
+
+    }
+
+}
+
+
+resetClouds();
+
+
+/* =========================================================
+   UPDATE
+========================================================= */
+
+function update(dt) {
+
+    if (!gameRunning) {
+        return;
+    }
+
+
+    gameTime +=
+        dt;
+
+
+    let inputX =
+        joy.x;
+
+
+    let inputY =
+        joy.y;
+
+
+    const keyboard =
+        keyboardInput();
+
+
+    if (
+        !joy.active &&
+        (
+            keyboard.x !== 0 ||
+            keyboard.y !== 0
+        )
+    ) {
+
+        inputX =
+            keyboard.x;
+
+        inputY =
+            keyboard.y;
+
+    }
+
+
+    const power =
+        6.5;
+
+
+    player.vx +=
+        (
+            inputX *
+            power -
+            player.vx
+        ) * .16;
+
+
+    player.vy +=
+        (
+            inputY *
+            power -
+            player.vy
+        ) * .16;
+
+
+    player.x +=
+        player.vx *
+        dt *
+        .06;
+
+
+    player.y +=
+        player.vy *
+        dt *
+        .06;
+
+
+    const margin =
+        25;
+
+
+    if (
+        player.x <
+        margin
+    ) {
+
+        player.x =
+            margin;
+
+        player.vx *=
+            -.25;
+
+    }
+
+
+    if (
+        player.x >
+        W - margin
+    ) {
+
+        player.x =
+            W - margin;
+
+        player.vx *=
+            -.25;
+
+    }
+
+
+    if (
+        player.y <
+        margin
+    ) {
+
+        player.y =
+            margin;
+
+        player.vy *=
+            -.25;
+
+    }
+
+
+    if (
+        player.y >
+        H - margin
+    ) {
+
+        player.y =
+            H - margin;
+
+        player.vy *=
+            -.25;
+
+    }
+
+
+    if (
+        Math.abs(
+            player.vx
+        ) +
+        Math.abs(
+            player.vy
+        ) > .2
+    ) {
+
+        player.angle =
+            Math.atan2(
+                player.vy,
+                player.vx
+            );
+
+    }
+
+
+    /* =====================
+       SPAWN
+    ===================== */
+
+    spawnTimer +=
+        dt;
+
+
+    const spawnDelay =
+        Math.max(
+            420,
+            1250 -
+            level * 55
+        );
+
+
+    if (
+        spawnTimer >
+        spawnDelay
+    ) {
+
+        spawnTimer =
+            0;
+
+
+        const amount =
+            Math.min(
+                1 +
+                Math.floor(
+                    level / 4
+                ),
+                3
+            );
+
+
+        for (
+            let i = 0;
+            i < amount;
+            i++
+        ) {
+
+            spawnEnemy();
+
+        }
+
+    }
+
+
+    /* =====================
+       ENEMIES
+    ===================== */
+
+    for (
+        let i =
+            enemies.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const enemy =
+            enemies[i];
+
+
+        const target =
+            Math.atan2(
+                player.y -
+                    enemy.y,
+
+                player.x -
+                    enemy.x
+            );
+
+
+        let diff =
+            target -
+            enemy.angle;
+
+
+        while (
+            diff >
+            Math.PI
+        ) {
+
+            diff -=
+                Math.PI * 2;
+
+        }
+
+
+        while (
+            diff <
+            -Math.PI
+        ) {
+
+            diff +=
+                Math.PI * 2;
+
+        }
+
+
+        enemy.angle +=
+            diff *
+            .012 *
+            dt;
+
+
+        enemy.vx =
+            Math.cos(
+                enemy.angle
+            ) *
+            enemy.speed;
+
+
+        enemy.vy =
+            Math.sin(
+                enemy.angle
+            ) *
+            enemy.speed;
+
+
+        enemy.x +=
+            enemy.vx *
+            dt *
+            .06;
+
+
+        enemy.y +=
+            enemy.vy *
+            dt *
+            .06;
+
+
+        /* collision */
+
+        if (
+            player.invincible <= 0 &&
+            collision(
+                player,
+                enemy
+            )
+        ) {
+
+            player.invincible =
+                1600;
+
+            lives--;
+
+            explode(
+                player.x,
+                player.y
+            );
+
+            screenShake =
+                300;
+
+            enemies.splice(
+                i,
+                1
+            );
+
+
+            updateHUD();
+
+
+            if (
+                lives <= 0
+            ) {
+
+                gameOver();
+
+                return;
+
+            }
+
+        }
+
+
+        /* escaped */
+
+        if (
+            enemy.x <
+                -150 ||
+            enemy.x >
+                W + 150 ||
+            enemy.y <
+                -150 ||
+            enemy.y >
+                H + 150
+        ) {
+
+            enemies.splice(
+                i,
+                1
+            );
+
+
+            score +=
+                10;
+
+
+            checkLevel();
+
+        }
+
+    }
+
+
+    if (
+        player.invincible >
+        0
+    ) {
+
+        player.invincible -=
+            dt;
+
+    }
+
+
+    /* =====================
+       PARTICLES
+    ===================== */
+
+    for (
+        let i =
+            particles.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const p =
+            particles[i];
+
+
+        p.x +=
+            p.vx *
+            dt *
+            .05;
+
+
+        p.y +=
+            p.vy *
+            dt *
+            .05;
+
+
+        p.life -=
+            dt /
+            700;
+
+
+        if (
+            p.life <= 0
+        ) {
+
+            particles.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+
+    /* =====================
+       SCORE
+    ===================== */
+
+    timeTimer +=
+        dt;
+
+
+    if (
+        timeTimer >
+        1000
+    ) {
+
+        timeTimer =
+            0;
+
+        score +=
+            5;
+
+        checkLevel();
+
+    }
+
+
+    saveLocalBest();
+
+    updateHUD();
+
+}
+
+
+/* =========================================================
+   LEVEL
+========================================================= */
+
+function checkLevel() {
+
+    const newLevel =
+        Math.floor(
+            score /
+            50
+        ) + 1;
+
+
+    if (
+        newLevel >
+        level
+    ) {
+
+        level =
+            newLevel;
+
+
+        showCheckpoint();
+
+
+        enemies.splice(
+            0,
+            Math.floor(
+                enemies.length /
+                2
+            )
+        );
+
+
+        player.invincible =
+            1800;
+
+    }
+
+}
+
+
+function showCheckpoint() {
+
+    const element =
+        document.getElementById(
+            "checkpoint"
+        );
+
+
+    document.getElementById(
+        "checkpointSub"
+    ).textContent =
+        "УРОВЕНЬ " +
+        level;
+
+
+    element.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () => {
+
+            element.classList.remove(
+                "show"
+            );
+
+        },
+        1600
+    );
+
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function updateHUD() {
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        Math.floor(
+            score
+        );
+
+
+    document.getElementById(
+        "recordValue"
+    ).textContent =
+        bestScore;
+
+
+    document.getElementById(
+        "level"
+    ).textContent =
+        "УРОВЕНЬ " +
+        level;
+
+
+    document.getElementById(
+        "lives"
+    ).textContent =
+
+        "❤️ ".repeat(
+            lives
+        )
+
+        +
+
+        "🖤 ".repeat(
+            Math.max(
+                0,
+                3 - lives
+            )
+        );
+
+}
+
+
+function saveLocalBest() {
+
+    if (
+        score >
+        bestScore
+    ) {
+
+        bestScore =
+            Math.floor(
+                score
+            );
+
+
+        localStorage.setItem(
+            "skyDodgeBestScore",
+            bestScore
+        );
+
+
+        updateRecordUI();
+
+    }
+
+}
+
+
+/* =========================================================
+   DRAW
+========================================================= */
+
+function drawBackground(dt) {
+
+    const gradient =
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            H
+        );
+
+
+    gradient.addColorStop(
+        0,
+        "#07172d"
+    );
+
+
+    gradient.addColorStop(
+        1,
+        "#020710"
+    );
+
+
+    ctx.fillStyle =
+        gradient;
+
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    /* speed lines */
+
+    ctx.save();
+
+    ctx.globalAlpha =
+        .22;
+
+
+    for (
+        let i = 0;
+        i < 80;
+        i++
+    ) {
+
+        const x =
+            (
+                i * 97 +
+                gameTime *
+                (
+                    20 +
+                    level * 3
+                )
+            ) %
+            (W + 100);
+
+
+        const y =
+            (
+                i * 53
+            ) %
+            H;
+
+
+        const length =
+            15 +
+            (
+                i % 5
+            ) * 10;
+
+
+        ctx.strokeStyle =
+            i % 3 === 0
+                ? "#5bdcff"
+                : "#ffffff";
+
+
+        ctx.lineWidth =
+            1;
+
+
+        ctx.beginPath();
+
+
+        ctx.moveTo(
+            x,
+            y
+        );
+
+
+        ctx.lineTo(
+            x,
+            y + length
+        );
+
+
+        ctx.stroke();
+
+    }
+
+
+    ctx.restore();
+
+
+    /* clouds */
+
+    for (
+        const cloud
+        of clouds
+    ) {
+
+        cloud.y +=
+            cloud.speed *
+            dt *
+            .04;
+
+
+        if (
+            cloud.y >
+            H + 100
+        ) {
+
+            cloud.y =
+                -100;
+
+            cloud.x =
+                Math.random() *
+                W;
+
+        }
+
+
+        ctx.save();
+
+
+        ctx.globalAlpha =
+            .07;
+
+
+        ctx.fillStyle =
+            "#ffffff";
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            cloud.x,
+            cloud.y,
+            cloud.size,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.arc(
+            cloud.x +
+                cloud.size * .8,
+            cloud.y + 5,
+            cloud.size * .65,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.arc(
+            cloud.x -
+                cloud.size * .7,
+            cloud.y + 8,
+            cloud.size * .55,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.fill();
+
+
+        ctx.restore();
+
+    }
+
+}
+
+
+/* =========================================================
+   AIRPLANES
+========================================================= */
+
+function drawPlane(
+    plane,
+    enemy = false
+) {
+
+    ctx.save();
+
+
+    ctx.translate(
+        plane.x,
+        plane.y
+    );
+
+
+    ctx.rotate(
+        plane.angle
+    );
+
+
+    ctx.shadowBlur =
+        enemy
+            ? 15
+            : 25;
+
+
+    ctx.shadowColor =
+        enemy
+            ? plane.color
+            : "#00eaff";
+
+
+    ctx.fillStyle =
+        enemy
+            ? plane.color
+            : "#d9f7ff";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        28,
+        0
+    );
+
+
+    ctx.lineTo(
+        -17,
+        -13
+    );
+
+
+    ctx.lineTo(
+        -10,
+        0
+    );
+
+
+    ctx.lineTo(
+        -17,
+        13
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        enemy
+            ? "#7e172d"
+            : "#26a9e0";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        5,
+        0
+    );
+
+
+    ctx.lineTo(
+        -16,
+        -26
+    );
+
+
+    ctx.lineTo(
+        -10,
+        -5
+    );
+
+
+    ctx.lineTo(
+        -10,
+        5
+    );
+
+
+    ctx.lineTo(
+        -16,
+        26
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        enemy
+            ? "#1b050a"
+            : "#102e45";
+
+
+    ctx.beginPath();
+
+
+    ctx.ellipse(
+        9,
+        0,
+        9,
+        5,
+        0,
+        0,
+        Math.PI * 2
+    );
+
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        "#00eaff";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        -15,
+        -5
+    );
+
+
+    ctx.lineTo(
+        -30,
+        0
+    );
+
+
+    ctx.lineTo(
+        -15,
+        5
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   COLLISION
+========================================================= */
+
+function collision(
+    a,
+    b
+) {
+
+    return (
+        Math.hypot(
+            a.x - b.x,
+            a.y - b.y
+        )
+        <
+        a.radius +
+        b.radius
+    );
+
+}
+
+
+/* =========================================================
+   GAME START
+========================================================= */
+
+function startGame() {
+
+    document
+        .getElementById(
+            "startScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "gameOver"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    score =
+        0;
+
+    level =
+        1;
+
+    lives =
+        3;
+
+
+    spawnTimer =
+        0;
+
+    timeTimer =
+        0;
+
+
+    enemies =
+        [];
+
+    particles =
+        [];
+
+
+    player.x =
+        W / 2;
+
+
+    player.y =
+        Math.min(
+            H * .42,
+            H - 180
+        );
+
+
+    player.vx =
+        0;
+
+    player.vy =
+        0;
+
+    player.angle =
+        0;
+
+    player.invincible =
+        1200;
+
+
+    resetClouds();
+
+    resetJoy();
+
+
+    gameRunning =
+        true;
+
+
+    updateHUD();
+
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+async function gameOver() {
+
+    gameRunning =
+        false;
+
+
+    resetJoy();
+
+
+    saveLocalBest();
+
+
+    const result =
+        await submitScore();
+
+
+    document.getElementById(
+        "finalScore"
+    ).textContent =
+        "Счёт: " +
+        Math.floor(
+            score
+        );
+
+
+    document.getElementById(
+        "finalLevel"
+    ).textContent =
+        "Уровень: " +
+        level;
+
+
+    document.getElementById(
+        "recordNotice"
+    ).textContent =
+
+        result &&
+        result.new_record
+
+            ? "🏆 НОВЫЙ СЕРВЕРНЫЙ РЕКОРД!"
+
+            : "🏆 Рекорд: " +
+              bestScore;
+
+
+    document
+        .getElementById(
+            "gameOver"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+document.getElementById(
+    "registerBtn"
+).onclick =
+    register;
+
+
+document.getElementById(
+    "loginBtn"
+).onclick =
+    login;
+
+
+document.getElementById(
+    "logoutBtn"
+).onclick =
+    logout;
+
+
+document.getElementById(
+    "guestBtn"
+).onclick =
+    async () => {
+
+        document
+            .getElementById(
+                "authScreen"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+
+        await refreshUser();
+
+    };
+
+
+document.getElementById(
+    "leadersBtn"
+).onclick =
+    openLeaders;
+
+
+document.getElementById(
+    "startLeadersBtn"
+).onclick =
+    openLeaders;
+
+
+document.getElementById(
+    "gameLeadersBtn"
+).onclick =
+    openLeaders;
+
+
+document.getElementById(
+    "closeLeadersBtn"
+).onclick =
+    closeLeaders;
+
+
+document.getElementById(
+    "startBtn"
+).onclick =
+    startGame;
+
+
+document.getElementById(
+    "restartBtn"
+).onclick =
+    startGame;
+
+
+/* =========================================================
+   MOBILE GESTURES
+========================================================= */
+
+document.addEventListener(
+    "touchmove",
+    event => {
+        event.preventDefault();
+    },
+    {
+        passive: false
+    }
+);
+
+
+document.addEventListener(
+    "gesturestart",
+    event => {
+        event.preventDefault();
+    }
+);
+
+
+document.addEventListener(
+    "dblclick",
+    event => {
+        event.preventDefault();
+    },
+    {
+        passive: false
+    }
+);
+
+
+/* =========================================================
+   LOOP
+========================================================= */
+
+updateHUD();
+
+refreshUser();
+
+
+requestAnimationFrame(
+    function loop(
+        timestamp
+    ) {
+
+        if (!lastTime) {
+            lastTime =
+                timestamp;
+        }
+
+
+        const dt =
+            Math.min(
+                timestamp -
+                    lastTime,
+                40
+            );
+
+
+        lastTime =
+            timestamp;
+
+
+        update(dt);
+
+        draw();
+
+
+        requestAnimationFrame(
+            loop
+        );
+
+    }
+);
+
+</script>
+
+</body>
+</html>
 ```
