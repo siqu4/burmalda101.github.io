@@ -3,11 +3,14 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width,
-               initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no">
+
+<meta
+    name="viewport"
+    content="width=device-width,
+    initial-scale=1.0,
+    maximum-scale=1.0,
+    user-scalable=no"
+>
 
 <title>SKY DODGE</title>
 
@@ -15,9 +18,11 @@
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     width: 100%;
@@ -41,7 +46,7 @@ canvas {
     touch-action: none;
 }
 
-/* ---------------- UI ---------------- */
+/* ================= HUD ================= */
 
 #hud {
     position: fixed;
@@ -62,14 +67,21 @@ canvas {
 }
 
 #score {
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 900;
-    margin-top: 4px;
+    margin-top: 5px;
+}
+
+#record {
+    font-size: 14px;
+    color: #ffd84d;
+    margin-top: 3px;
+    font-weight: bold;
 }
 
 #level {
     font-size: 14px;
-    margin-top: 3px;
+    margin-top: 4px;
     color: #66ddff;
 }
 
@@ -79,26 +91,37 @@ canvas {
     letter-spacing: 3px;
 }
 
-/* ---------------- CHECKPOINT ---------------- */
+/* ================= CHECKPOINT ================= */
 
 #checkpoint {
     position: fixed;
+
     left: 50%;
-    top: 22%;
-    transform: translate(-50%, -50%) scale(.8);
+    top: 23%;
+
+    transform:
+        translate(-50%, -50%)
+        scale(.75);
+
     color: white;
-    font-size: 32px;
+
+    font-size: 34px;
     font-weight: 1000;
+
     letter-spacing: 5px;
+
     text-align: center;
+
     opacity: 0;
+
     pointer-events: none;
+
     z-index: 10;
 
     text-shadow:
         3px 0 #00eaff,
         -3px 0 #ff00cc,
-        0 0 25px white;
+        0 0 30px white;
 
     transition:
         opacity .2s,
@@ -107,19 +130,17 @@ canvas {
 
 #checkpoint.show {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+
+    transform:
+        translate(-50%, -50%)
+        scale(1);
 }
 
-/* ---------------- JOYSTICK ---------------- */
+/* ================= JOYSTICK ================= */
 
 #joystick {
     position: fixed;
 
-    /*
-       Джойстик находится практически по центру
-       нижней части экрана, чтобы им было удобно
-       управлять большим пальцем.
-    */
     left: 50%;
     bottom: 55px;
 
@@ -138,7 +159,8 @@ canvas {
             rgba(0,0,0,.15)
         );
 
-    border: 2px solid rgba(100,220,255,.35);
+    border:
+        2px solid rgba(100,220,255,.35);
 
     box-shadow:
         0 0 30px rgba(0,200,255,.12),
@@ -153,17 +175,20 @@ canvas {
     content: "";
 
     position: absolute;
+
     left: 50%;
     top: 50%;
 
     width: 8px;
     height: 8px;
 
-    transform: translate(-50%, -50%);
+    transform:
+        translate(-50%, -50%);
 
     border-radius: 50%;
 
-    background: rgba(255,255,255,.25);
+    background:
+        rgba(255,255,255,.25);
 }
 
 #stick {
@@ -175,7 +200,8 @@ canvas {
     width: 66px;
     height: 66px;
 
-    transform: translate(-50%, -50%);
+    transform:
+        translate(-50%, -50%);
 
     border-radius: 50%;
 
@@ -187,20 +213,21 @@ canvas {
             #075d96
         );
 
-    border: 2px solid rgba(255,255,255,.65);
+    border:
+        2px solid rgba(255,255,255,.65);
 
     box-shadow:
         0 0 20px rgba(0,210,255,.65),
         inset 0 0 15px rgba(255,255,255,.25);
-
-    transition: transform .05s linear;
 
     touch-action: none;
 }
 
 #joystickText {
     position: absolute;
+
     width: 100%;
+
     bottom: -25px;
 
     text-align: center;
@@ -208,10 +235,11 @@ canvas {
     font-size: 10px;
     letter-spacing: 2px;
 
-    color: rgba(255,255,255,.45);
+    color:
+        rgba(255,255,255,.45);
 }
 
-/* ---------------- START SCREEN ---------------- */
+/* ================= SCREENS ================= */
 
 .screen {
     position: fixed;
@@ -220,6 +248,7 @@ canvas {
     z-index: 50;
 
     display: flex;
+
     flex-direction: column;
 
     align-items: center;
@@ -241,7 +270,8 @@ canvas {
 .screen h1 {
     margin: 0;
 
-    font-size: clamp(45px, 12vw, 100px);
+    font-size:
+        clamp(45px, 12vw, 100px);
 
     font-weight: 1000;
 
@@ -254,13 +284,19 @@ canvas {
 }
 
 .screen p {
-    max-width: 500px;
+    max-width: 520px;
 
     padding: 0 25px;
 
     color: #9eb1c7;
 
     line-height: 1.6;
+}
+
+#startRecord {
+    color: #ffd84d;
+    font-weight: bold;
+    font-size: 17px;
 }
 
 button {
@@ -272,11 +308,12 @@ button {
 
     border-radius: 10px;
 
-    background: linear-gradient(
-        135deg,
-        #00bfff,
-        #0066ff
-    );
+    background:
+        linear-gradient(
+            135deg,
+            #00bfff,
+            #0066ff
+        );
 
     color: white;
 
@@ -287,7 +324,8 @@ button {
     letter-spacing: 2px;
 
     box-shadow:
-        0 0 30px rgba(0,180,255,.35);
+        0 0 30px
+        rgba(0,180,255,.35);
 
     cursor: pointer;
 }
@@ -300,7 +338,7 @@ button:active {
     display: none !important;
 }
 
-/* ---------------- GAME OVER ---------------- */
+/* ================= GAME OVER ================= */
 
 #gameOver h1 {
     color: #ff477e;
@@ -311,12 +349,25 @@ button:active {
         0 0 30px #ff0055;
 }
 
-/* ---------------- SMALL SCREENS ---------------- */
+#finalScore {
+    font-size: 22px;
+    color: white;
+    font-weight: bold;
+}
+
+#newRecord {
+    color: #ffd84d;
+    font-size: 18px;
+    font-weight: 900;
+    min-height: 25px;
+}
+
+/* ================= MOBILE ================= */
 
 @media (max-height: 600px) {
 
     #joystick {
-        bottom: 20px;
+        bottom: 18px;
         width: 125px;
         height: 125px;
     }
@@ -337,7 +388,8 @@ button:active {
 
 <canvas id="game"></canvas>
 
-<!-- HUD -->
+<!-- ================= HUD ================= -->
+
 <div id="hud">
 
     <div id="gameName">
@@ -346,6 +398,10 @@ button:active {
 
     <div id="score">
         0
+    </div>
+
+    <div id="record">
+        🏆 РЕКОРД: <span id="recordValue">0</span>
     </div>
 
     <div id="level">
@@ -358,15 +414,25 @@ button:active {
 
 </div>
 
-<!-- CHECKPOINT -->
+
+<!-- ================= CHECKPOINT ================= -->
+
 <div id="checkpoint">
     CHECKPOINT
-    <div style="font-size:15px;letter-spacing:2px;margin-top:8px">
+
+    <div
+        style="
+        font-size:15px;
+        letter-spacing:2px;
+        margin-top:8px"
+    >
         УРОВЕНЬ ПРОЙДЕН
     </div>
 </div>
 
-<!-- JOYSTICK -->
+
+<!-- ================= JOYSTICK ================= -->
+
 <div id="joystick">
 
     <div id="stick"></div>
@@ -377,16 +443,25 @@ button:active {
 
 </div>
 
-<!-- START -->
+
+<!-- ================= START ================= -->
+
 <div id="startScreen" class="screen">
 
-    <h1>SKY<br>DODGE</h1>
+    <h1>
+        SKY<br>DODGE
+    </h1>
 
     <p>
         Управляй самолётом джойстиком.<br>
         Уворачивайся от вражеских самолётов.<br>
-        Каждые 1000 очков — новый уровень.
+        Каждые 50 очков открывается новый уровень.
     </p>
+
+    <div id="startRecord">
+        🏆 ТВОЙ РЕКОРД:
+        <span id="startRecordValue">0</span>
+    </div>
 
     <button id="startButton">
         НАЧАТЬ ПОЛЁТ
@@ -394,13 +469,24 @@ button:active {
 
 </div>
 
-<!-- GAME OVER -->
+
+<!-- ================= GAME OVER ================= -->
+
 <div id="gameOver" class="screen hidden">
 
-    <h1>РАЗБИЛСЯ</h1>
+    <h1>
+        РАЗБИЛСЯ
+    </h1>
 
-    <p id="finalText">
-        Полёт окончен.
+    <p id="finalScore">
+        Счёт: 0
+    </p>
+
+    <div id="newRecord"></div>
+
+    <p>
+        Уровень:
+        <b id="finalLevel">1</b>
     </p>
 
     <button id="restartButton">
@@ -409,14 +495,18 @@ button:active {
 
 </div>
 
+
 <script>
 
 /* =========================================================
    CANVAS
 ========================================================= */
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas =
+    document.getElementById("game");
+
+const ctx =
+    canvas.getContext("2d");
 
 let W = 0;
 let H = 0;
@@ -424,27 +514,92 @@ let DPR = 1;
 
 function resize() {
 
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    DPR =
+        Math.min(
+            window.devicePixelRatio || 1,
+            2
+        );
 
-    W = window.innerWidth;
-    H = window.innerHeight;
+    W =
+        window.innerWidth;
 
-    canvas.width = W * DPR;
-    canvas.height = H * DPR;
+    H =
+        window.innerHeight;
 
-    canvas.style.width = W + "px";
-    canvas.style.height = H + "px";
+    canvas.width =
+        W * DPR;
 
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    canvas.height =
+        H * DPR;
+
+    canvas.style.width =
+        W + "px";
+
+    canvas.style.height =
+        H + "px";
+
+    ctx.setTransform(
+        DPR,
+        0,
+        0,
+        DPR,
+        0,
+        0
+    );
 }
 
-window.addEventListener("resize", resize);
+window.addEventListener(
+    "resize",
+    resize
+);
 
 resize();
 
 
 /* =========================================================
-   GAME VARIABLES
+   RECORD
+========================================================= */
+
+/*
+    Рекорд хранится прямо
+    в браузере пользователя.
+
+    Даже после:
+    - закрытия сайта;
+    - перезагрузки;
+    - закрытия браузера
+
+    он останется.
+*/
+
+let bestScore =
+    Number(
+        localStorage.getItem(
+            "skyDodgeBestScore"
+        )
+    ) || 0;
+
+
+function updateRecordUI() {
+
+    document.getElementById(
+        "recordValue"
+    ).textContent =
+        bestScore;
+
+    document.getElementById(
+        "startRecordValue"
+    ).textContent =
+        bestScore;
+
+}
+
+
+updateRecordUI();
+
+
+/* =========================================================
+   GAME
 ========================================================= */
 
 let gameRunning = false;
@@ -489,8 +644,15 @@ const player = {
    JOYSTICK
 ========================================================= */
 
-const joystick = document.getElementById("joystick");
-const stick = document.getElementById("stick");
+const joystick =
+    document.getElementById(
+        "joystick"
+    );
+
+const stick =
+    document.getElementById(
+        "stick"
+    );
 
 let joy = {
 
@@ -499,6 +661,7 @@ let joy = {
     pointerId: null,
 
     x: 0,
+
     y: 0,
 
     max: 47
@@ -508,41 +671,70 @@ let joy = {
 
 function joystickCenter() {
 
-    const rect = joystick.getBoundingClientRect();
+    const rect =
+        joystick.getBoundingClientRect();
 
     return {
 
-        x: rect.left + rect.width / 2,
+        x:
+            rect.left +
+            rect.width / 2,
 
-        y: rect.top + rect.height / 2
+        y:
+            rect.top +
+            rect.height / 2
 
     };
 
 }
 
 
-function updateJoystick(clientX, clientY) {
+function updateJoystick(
+    clientX,
+    clientY
+) {
 
-    const center = joystickCenter();
+    const center =
+        joystickCenter();
 
-    let dx = clientX - center.x;
-    let dy = clientY - center.y;
+    let dx =
+        clientX -
+        center.x;
 
-    const distance = Math.hypot(dx, dy);
+    let dy =
+        clientY -
+        center.y;
 
-    if (distance > joy.max) {
+    const distance =
+        Math.hypot(dx, dy);
 
-        dx = dx / distance * joy.max;
+    if (
+        distance >
+        joy.max
+    ) {
 
-        dy = dy / distance * joy.max;
+        dx =
+            dx / distance *
+            joy.max;
+
+        dy =
+            dy / distance *
+            joy.max;
 
     }
 
-    joy.x = dx / joy.max;
-    joy.y = dy / joy.max;
+    joy.x =
+        dx / joy.max;
+
+    joy.y =
+        dy / joy.max;
 
     stick.style.transform =
-        `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        `translate(
+            calc(-50% + ${dx}px),
+            calc(-50% + ${dy}px)
+        )`;
+
 }
 
 
@@ -561,46 +753,75 @@ function resetJoystick() {
 }
 
 
-joystick.addEventListener("pointerdown", e => {
+joystick.addEventListener(
+    "pointerdown",
+    function(e) {
 
-    e.preventDefault();
+        e.preventDefault();
 
-    joy.active = true;
+        joy.active = true;
 
-    joy.pointerId = e.pointerId;
+        joy.pointerId =
+            e.pointerId;
 
-    joystick.setPointerCapture(e.pointerId);
+        joystick.setPointerCapture(
+            e.pointerId
+        );
 
-    updateJoystick(e.clientX, e.clientY);
-
-});
-
-
-joystick.addEventListener("pointermove", e => {
-
-    if (!joy.active) return;
-
-    if (e.pointerId !== joy.pointerId) return;
-
-    e.preventDefault();
-
-    updateJoystick(e.clientX, e.clientY);
-
-});
-
-
-joystick.addEventListener("pointerup", e => {
-
-    if (e.pointerId === joy.pointerId) {
-
-        resetJoystick();
+        updateJoystick(
+            e.clientX,
+            e.clientY
+        );
 
     }
+);
 
-});
+
+joystick.addEventListener(
+    "pointermove",
+    function(e) {
+
+        if (!joy.active)
+            return;
+
+        if (
+            e.pointerId !==
+            joy.pointerId
+        )
+            return;
+
+        e.preventDefault();
+
+        updateJoystick(
+            e.clientX,
+            e.clientY
+        );
+
+    }
+);
 
 
-joystick.addEventListener("pointercancel", resetJoystick);
+joystick.addEventListener(
+    "pointerup",
+    function(e) {
+
+        if (
+            e.pointerId ===
+            joy.pointerId
+        ) {
+
+            resetJoystick();
+
+        }
+
+    }
+);
+
+
+joystick.addEventListener(
+    "pointercancel",
+    resetJoystick
+);
 
 
 /* =========================================================
@@ -609,18 +830,28 @@ joystick.addEventListener("pointercancel", resetJoystick);
 
 const keys = {};
 
-window.addEventListener("keydown", e => {
+window.addEventListener(
+    "keydown",
+    e => {
 
-    keys[e.key.toLowerCase()] = true;
+        keys[
+            e.key.toLowerCase()
+        ] = true;
 
-});
+    }
+);
 
 
-window.addEventListener("keyup", e => {
+window.addEventListener(
+    "keyup",
+    e => {
 
-    keys[e.key.toLowerCase()] = false;
+        keys[
+            e.key.toLowerCase()
+        ] = false;
 
-});
+    }
+);
 
 
 function getKeyboardInput() {
@@ -631,24 +862,31 @@ function getKeyboardInput() {
     if (
         keys["a"] ||
         keys["arrowleft"]
-    ) x -= 1;
+    )
+        x -= 1;
 
     if (
         keys["d"] ||
         keys["arrowright"]
-    ) x += 1;
+    )
+        x += 1;
 
     if (
         keys["w"] ||
         keys["arrowup"]
-    ) y -= 1;
+    )
+        y -= 1;
 
     if (
         keys["s"] ||
         keys["arrowdown"]
-    ) y += 1;
+    )
+        y += 1;
 
-    return {x, y};
+    return {
+        x,
+        y
+    };
 
 }
 
@@ -662,14 +900,19 @@ let enemies = [];
 
 function spawnEnemy() {
 
-    const side = Math.floor(Math.random() * 4);
+    const side =
+        Math.floor(
+            Math.random() * 4
+        );
 
     let x;
     let y;
 
     if (side === 0) {
 
-        x = Math.random() * W;
+        x =
+            Math.random() * W;
+
         y = -80;
 
     }
@@ -677,13 +920,17 @@ function spawnEnemy() {
     else if (side === 1) {
 
         x = W + 80;
-        y = Math.random() * H;
+
+        y =
+            Math.random() * H;
 
     }
 
     else if (side === 2) {
 
-        x = Math.random() * W;
+        x =
+            Math.random() * W;
+
         y = H + 80;
 
     }
@@ -691,9 +938,12 @@ function spawnEnemy() {
     else {
 
         x = -80;
-        y = Math.random() * H;
+
+        y =
+            Math.random() * H;
 
     }
+
 
     const targetAngle =
         Math.atan2(
@@ -701,27 +951,36 @@ function spawnEnemy() {
             player.x - x
         );
 
+
+    /*
+       Каждый уровень
+       делает врагов немного быстрее.
+    */
+
     const speed =
-        1.8 +
-        level * .35 +
-        Math.random() * 1.4;
+        1.7 +
+        level * 0.42 +
+        Math.random() * 1.1;
+
 
     enemies.push({
 
         x,
         y,
 
-        vx: Math.cos(targetAngle) * speed,
+        vx:
+            Math.cos(targetAngle) *
+            speed,
 
-        vy: Math.sin(targetAngle) * speed,
+        vy:
+            Math.sin(targetAngle) *
+            speed,
 
         radius: 17,
 
         angle: targetAngle,
 
         speed,
-
-        wiggle: Math.random() * 10,
 
         color:
             Math.random() > .5
@@ -740,29 +999,44 @@ function spawnEnemy() {
 let particles = [];
 
 
-function particleExplosion(x, y) {
+function particleExplosion(
+    x,
+    y
+) {
 
-    for (let i = 0; i < 35; i++) {
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
 
         const angle =
-            Math.random() * Math.PI * 2;
+            Math.random() *
+            Math.PI *
+            2;
 
         const speed =
-            1 + Math.random() * 5;
+            1 +
+            Math.random() * 5;
 
         particles.push({
 
             x,
             y,
 
-            vx: Math.cos(angle) * speed,
+            vx:
+                Math.cos(angle) *
+                speed,
 
-            vy: Math.sin(angle) * speed,
+            vy:
+                Math.sin(angle) *
+                speed,
 
             life: 1,
 
             size:
-                2 + Math.random() * 4,
+                2 +
+                Math.random() * 4,
 
             color:
                 Math.random() > .5
@@ -777,24 +1051,32 @@ function particleExplosion(x, y) {
 
 
 /* =========================================================
-   CLOUDS
+   BACKGROUND
 ========================================================= */
 
 let clouds = [];
 
-for (let i = 0; i < 35; i++) {
+for (
+    let i = 0;
+    i < 35;
+    i++
+) {
 
     clouds.push({
 
-        x: Math.random() * W,
+        x:
+            Math.random() * W,
 
-        y: Math.random() * H,
+        y:
+            Math.random() * H,
 
         size:
-            20 + Math.random() * 70,
+            20 +
+            Math.random() * 70,
 
         speed:
-            .3 + Math.random() * 1.5
+            .3 +
+            Math.random() * 1.5
 
     });
 
@@ -825,7 +1107,8 @@ function drawBackground(dt) {
         "#020710"
     );
 
-    ctx.fillStyle = gradient;
+    ctx.fillStyle =
+        gradient;
 
     ctx.fillRect(
         0,
@@ -835,31 +1118,52 @@ function drawBackground(dt) {
     );
 
 
-    /*
-       Летающие линии создают эффект
-       движения самолёта вперёд.
-    */
-
     ctx.save();
 
-    ctx.globalAlpha = .22;
+    ctx.globalAlpha =
+        .22;
 
-    for (let i = 0; i < 80; i++) {
+
+    /*
+       Скорость полос тоже
+       немного возрастает
+       с уровнем.
+    */
+
+    const lineSpeed =
+        20 +
+        level * 3;
+
+
+    for (
+        let i = 0;
+        i < 80;
+        i++
+    ) {
 
         const x =
-            (i * 97 + gameTime * (20 + i % 5 * 5))
-            % (W + 100);
+            (i * 97 +
+            gameTime *
+            lineSpeed)
+            %
+            (W + 100);
+
 
         const y =
-            (i * 53) % H;
+            (i * 53) %
+            H;
+
 
         const length =
-            15 + (i % 5) * 10;
+            15 +
+            (i % 5) * 10;
+
 
         ctx.strokeStyle =
             i % 3 === 0
             ? "#5bdcff"
             : "#ffffff";
+
 
         ctx.lineWidth = 1;
 
@@ -882,28 +1186,33 @@ function drawBackground(dt) {
     ctx.restore();
 
 
-    /*
-       Облака
-    */
-
-    for (const cloud of clouds) {
+    for (
+        const cloud of clouds
+    ) {
 
         cloud.y +=
             cloud.speed *
             dt *
             .04;
 
-        if (cloud.y > H + 100) {
+
+        if (
+            cloud.y >
+            H + 100
+        ) {
 
             cloud.y = -100;
 
         }
 
+
         ctx.save();
 
-        ctx.globalAlpha = .07;
+        ctx.globalAlpha =
+            .07;
 
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle =
+            "#ffffff";
 
         ctx.beginPath();
 
@@ -916,7 +1225,8 @@ function drawBackground(dt) {
         );
 
         ctx.arc(
-            cloud.x + cloud.size * .8,
+            cloud.x +
+            cloud.size * .8,
             cloud.y + 5,
             cloud.size * .65,
             0,
@@ -924,7 +1234,8 @@ function drawBackground(dt) {
         );
 
         ctx.arc(
-            cloud.x - cloud.size * .7,
+            cloud.x -
+            cloud.size * .7,
             cloud.y + 8,
             cloud.size * .55,
             0,
@@ -957,29 +1268,41 @@ function drawPlayer() {
         player.angle
     );
 
-    /*
-       Свечение
-    */
 
     ctx.shadowBlur = 25;
 
-    ctx.shadowColor = "#00eaff";
+    ctx.shadowColor =
+        "#00eaff";
+
 
     /*
        Корпус
     */
 
-    ctx.fillStyle = "#d9f7ff";
+    ctx.fillStyle =
+        "#d9f7ff";
 
     ctx.beginPath();
 
-    ctx.moveTo(28, 0);
+    ctx.moveTo(
+        28,
+        0
+    );
 
-    ctx.lineTo(-17, -13);
+    ctx.lineTo(
+        -17,
+        -13
+    );
 
-    ctx.lineTo(-10, 0);
+    ctx.lineTo(
+        -10,
+        0
+    );
 
-    ctx.lineTo(-17, 13);
+    ctx.lineTo(
+        -17,
+        13
+    );
 
     ctx.closePath();
 
@@ -990,19 +1313,35 @@ function drawPlayer() {
        Крылья
     */
 
-    ctx.fillStyle = "#26a9e0";
+    ctx.fillStyle =
+        "#26a9e0";
 
     ctx.beginPath();
 
-    ctx.moveTo(5, 0);
+    ctx.moveTo(
+        5,
+        0
+    );
 
-    ctx.lineTo(-16, -26);
+    ctx.lineTo(
+        -16,
+        -26
+    );
 
-    ctx.lineTo(-10, -5);
+    ctx.lineTo(
+        -10,
+        -5
+    );
 
-    ctx.lineTo(-10, 5);
+    ctx.lineTo(
+        -10,
+        5
+    );
 
-    ctx.lineTo(-16, 26);
+    ctx.lineTo(
+        -16,
+        26
+    );
 
     ctx.closePath();
 
@@ -1013,7 +1352,8 @@ function drawPlayer() {
        Кабина
     */
 
-    ctx.fillStyle = "#102e45";
+    ctx.fillStyle =
+        "#102e45";
 
     ctx.beginPath();
 
@@ -1034,15 +1374,25 @@ function drawPlayer() {
        Двигатель
     */
 
-    ctx.fillStyle = "#00eaff";
+    ctx.fillStyle =
+        "#00eaff";
 
     ctx.beginPath();
 
-    ctx.moveTo(-15, -5);
+    ctx.moveTo(
+        -15,
+        -5
+    );
 
-    ctx.lineTo(-30, 0);
+    ctx.lineTo(
+        -30,
+        0
+    );
 
-    ctx.lineTo(-15, 5);
+    ctx.lineTo(
+        -15,
+        5
+    );
 
     ctx.closePath();
 
@@ -1071,10 +1421,13 @@ function drawEnemy(enemy) {
         enemy.angle
     );
 
-    ctx.shadowBlur = 15;
+
+    ctx.shadowBlur =
+        15;
 
     ctx.shadowColor =
         enemy.color;
+
 
     ctx.fillStyle =
         enemy.color;
@@ -1086,13 +1439,25 @@ function drawEnemy(enemy) {
 
     ctx.beginPath();
 
-    ctx.moveTo(25, 0);
+    ctx.moveTo(
+        25,
+        0
+    );
 
-    ctx.lineTo(-18, -11);
+    ctx.lineTo(
+        -18,
+        -11
+    );
 
-    ctx.lineTo(-10, 0);
+    ctx.lineTo(
+        -10,
+        0
+    );
 
-    ctx.lineTo(-18, 11);
+    ctx.lineTo(
+        -18,
+        11
+    );
 
     ctx.closePath();
 
@@ -1103,19 +1468,35 @@ function drawEnemy(enemy) {
        Крылья
     */
 
-    ctx.fillStyle = "#7e172d";
+    ctx.fillStyle =
+        "#7e172d";
 
     ctx.beginPath();
 
-    ctx.moveTo(5, 0);
+    ctx.moveTo(
+        5,
+        0
+    );
 
-    ctx.lineTo(-15, -23);
+    ctx.lineTo(
+        -15,
+        -23
+    );
 
-    ctx.lineTo(-8, -3);
+    ctx.lineTo(
+        -8,
+        -3
+    );
 
-    ctx.lineTo(-8, 3);
+    ctx.lineTo(
+        -8,
+        3
+    );
 
-    ctx.lineTo(-15, 23);
+    ctx.lineTo(
+        -15,
+        23
+    );
 
     ctx.closePath();
 
@@ -1126,7 +1507,8 @@ function drawEnemy(enemy) {
        Кабина
     */
 
-    ctx.fillStyle = "#1b050a";
+    ctx.fillStyle =
+        "#1b050a";
 
     ctx.beginPath();
 
@@ -1152,12 +1534,18 @@ function drawEnemy(enemy) {
    COLLISION
 ========================================================= */
 
-function collision(a, b) {
+function collision(
+    a,
+    b
+) {
 
     return Math.hypot(
         a.x - b.x,
         a.y - b.y
-    ) < a.radius + b.radius;
+    )
+    <
+    a.radius +
+    b.radius;
 
 }
 
@@ -1171,20 +1559,24 @@ let gameTime = 0;
 
 function update(dt) {
 
-    if (!gameRunning) return;
+    if (!gameRunning)
+        return;
 
 
     gameTime += dt;
 
 
     /*
-       --------------------------
-       Управление
-       --------------------------
+       =========================
+       УПРАВЛЕНИЕ
+       =========================
     */
 
-    let inputX = joy.x;
-    let inputY = joy.y;
+    let inputX =
+        joy.x;
+
+    let inputY =
+        joy.y;
 
 
     const keyboard =
@@ -1196,30 +1588,40 @@ function update(dt) {
         keyboard.y !== 0
     ) {
 
-        inputX = keyboard.x;
-        inputY = keyboard.y;
+        inputX =
+            keyboard.x;
+
+        inputY =
+            keyboard.y;
 
     }
 
 
-    const controlPower = 6.5;
+    const controlPower =
+        6.5;
 
 
     player.vx +=
-        (inputX * controlPower -
-         player.vx) *
-        .16;
+        (
+            inputX *
+            controlPower -
+            player.vx
+        ) * .16;
+
 
     player.vy +=
-        (inputY * controlPower -
-         player.vy) *
-        .16;
+        (
+            inputY *
+            controlPower -
+            player.vy
+        ) * .16;
 
 
     player.x +=
         player.vx *
         dt *
         .06;
+
 
     player.y +=
         player.vy *
@@ -1228,40 +1630,66 @@ function update(dt) {
 
 
     /*
-       Ограничение экрана
+       Не выпускаем самолёт
+       за границы экрана
     */
 
-    const margin = 25;
+    const margin =
+        25;
 
-    if (player.x < margin) {
 
-        player.x = margin;
+    if (
+        player.x <
+        margin
+    ) {
 
-        player.vx *= -.25;
+        player.x =
+            margin;
 
-    }
-
-    if (player.x > W - margin) {
-
-        player.x = W - margin;
-
-        player.vx *= -.25;
-
-    }
-
-    if (player.y < margin) {
-
-        player.y = margin;
-
-        player.vy *= -.25;
+        player.vx *=
+            -.25;
 
     }
 
-    if (player.y > H - margin) {
 
-        player.y = H - margin;
+    if (
+        player.x >
+        W - margin
+    ) {
 
-        player.vy *= -.25;
+        player.x =
+            W - margin;
+
+        player.vx *=
+            -.25;
+
+    }
+
+
+    if (
+        player.y <
+        margin
+    ) {
+
+        player.y =
+            margin;
+
+        player.vy *=
+            -.25;
+
+    }
+
+
+    if (
+        player.y >
+        H - margin
+    ) {
+
+        player.y =
+            H - margin;
+
+        player.vy *=
+            -.25;
 
     }
 
@@ -1285,45 +1713,59 @@ function update(dt) {
 
 
     /*
-       --------------------------
-       Враги
-       --------------------------
+       =========================
+       ВРАГИ
+       =========================
     */
 
     spawnTimer += dt;
 
 
     /*
-       Чем выше уровень,
-       тем чаще появляются враги.
+       Самолётов чуть меньше.
+
+       На первом уровне:
+       примерно один новый
+       самолёт раз в 1.2 секунды.
+
+       На следующих уровнях
+       появление ускоряется.
     */
 
     const spawnDelay =
         Math.max(
-            230,
-            1050 -
-            level * 75
+            420,
+            1250 -
+            level * 55
         );
 
 
-    if (spawnTimer > spawnDelay) {
+    if (
+        spawnTimer >
+        spawnDelay
+    ) {
 
         spawnTimer = 0;
 
+
         /*
-           На высоких уровнях
-           создаём сразу несколько
-           самолётов.
+           Максимум 3 врага
+           за один момент.
         */
 
         const amount =
             Math.min(
                 1 +
-                Math.floor(level / 3),
-                5
+                Math.floor(level / 4),
+                3
             );
 
-        for (let i = 0; i < amount; i++) {
+
+        for (
+            let i = 0;
+            i < amount;
+            i++
+        ) {
 
             spawnEnemy();
 
@@ -1336,20 +1778,23 @@ function update(dt) {
        Движение врагов
     */
 
-    for (let i = enemies.length - 1; i >= 0; i--) {
+    for (
+        let i = enemies.length - 1;
+        i >= 0;
+        i--
+    ) {
 
-        const enemy = enemies[i];
+        const enemy =
+            enemies[i];
 
-
-        /*
-           Небольшое наведение
-           на игрока
-        */
 
         const desiredAngle =
             Math.atan2(
-                player.y - enemy.y,
-                player.x - enemy.x
+                player.y -
+                enemy.y,
+
+                player.x -
+                enemy.x
             );
 
 
@@ -1358,24 +1803,45 @@ function update(dt) {
             enemy.angle;
 
 
-        while (difference > Math.PI)
-            difference -= Math.PI * 2;
+        while (
+            difference >
+            Math.PI
+        ) {
 
-        while (difference < -Math.PI)
-            difference += Math.PI * 2;
+            difference -=
+                Math.PI * 2;
+
+        }
+
+
+        while (
+            difference <
+            -Math.PI
+        ) {
+
+            difference +=
+                Math.PI * 2;
+
+        }
 
 
         enemy.angle +=
-            difference * .012 *
+            difference *
+            .012 *
             dt;
 
 
         enemy.vx =
-            Math.cos(enemy.angle) *
+            Math.cos(
+                enemy.angle
+            ) *
             enemy.speed;
 
+
         enemy.vy =
-            Math.sin(enemy.angle) *
+            Math.sin(
+                enemy.angle
+            ) *
             enemy.speed;
 
 
@@ -1384,6 +1850,7 @@ function update(dt) {
             dt *
             .06;
 
+
         enemy.y +=
             enemy.vy *
             dt *
@@ -1391,30 +1858,43 @@ function update(dt) {
 
 
         /*
-           Столкновение
+           ======================
+           СТОЛКНОВЕНИЕ
+           ======================
         */
 
         if (
             player.invincible <= 0 &&
-            collision(player, enemy)
+            collision(
+                player,
+                enemy
+            )
         ) {
 
-            player.invincible = 1600;
+            player.invincible =
+                1600;
 
             lives--;
-
-            updateHUD();
 
             particleExplosion(
                 player.x,
                 player.y
             );
 
-            screenShake = 350;
+            screenShake =
+                350;
 
-            enemies.splice(i, 1);
+            enemies.splice(
+                i,
+                1
+            );
 
-            if (lives <= 0) {
+            updateHUD();
+
+
+            if (
+                lives <= 0
+            ) {
 
                 gameOver();
 
@@ -1426,7 +1906,8 @@ function update(dt) {
 
 
         /*
-           Удаляем далеко улетевших
+           Самолёт улетел —
+           получаем 10 очков
         */
 
         if (
@@ -1436,12 +1917,11 @@ function update(dt) {
             enemy.y > H + 150
         ) {
 
-            enemies.splice(i, 1);
+            enemies.splice(
+                i,
+                1
+            );
 
-            /*
-               За успешно пережитого врага
-               получаем очки.
-            */
 
             score += 10;
 
@@ -1452,17 +1932,20 @@ function update(dt) {
     }
 
 
-    if (player.invincible > 0) {
+    if (
+        player.invincible > 0
+    ) {
 
-        player.invincible -= dt;
+        player.invincible -=
+            dt;
 
     }
 
 
     /*
-       --------------------------
-       Частицы
-       --------------------------
+       =========================
+       ЧАСТИЦЫ
+       =========================
     */
 
     for (
@@ -1471,16 +1954,34 @@ function update(dt) {
         i--
     ) {
 
-        const p = particles[i];
+        const p =
+            particles[i];
 
-        p.x += p.vx * dt * .05;
-        p.y += p.vy * dt * .05;
 
-        p.life -= dt / 700;
+        p.x +=
+            p.vx *
+            dt *
+            .05;
 
-        if (p.life <= 0) {
 
-            particles.splice(i, 1);
+        p.y +=
+            p.vy *
+            dt *
+            .05;
+
+
+        p.life -=
+            dt / 700;
+
+
+        if (
+            p.life <= 0
+        ) {
+
+            particles.splice(
+                i,
+                1
+            );
 
         }
 
@@ -1488,12 +1989,17 @@ function update(dt) {
 
 
     /*
-       Очки за время
+       Дополнительные очки
+       за время полёта
     */
 
     checkpointTimer += dt;
 
-    if (checkpointTimer > 1000) {
+
+    if (
+        checkpointTimer >
+        1000
+    ) {
 
         checkpointTimer = 0;
 
@@ -1503,6 +2009,13 @@ function update(dt) {
 
     }
 
+
+    /*
+       Сохраняем рекорд
+       сразу во время игры.
+    */
+
+    saveBestScore();
 
     updateHUD();
 
@@ -1515,37 +2028,89 @@ function update(dt) {
 
 function checkLevel() {
 
+    /*
+       КАЖДЫЕ 50 ОЧКОВ —
+       НОВЫЙ УРОВЕНЬ.
+
+       0-49   = уровень 1
+       50-99  = уровень 2
+       100-149 = уровень 3
+       и т.д.
+    */
+
     const newLevel =
-        Math.floor(score / 1000) + 1;
+        Math.floor(
+            score / 50
+        ) + 1;
 
 
-    if (newLevel > level) {
+    if (
+        newLevel > level
+    ) {
 
-        level = newLevel;
+        level =
+            newLevel;
+
 
         showCheckpoint();
 
+
         /*
-           После чекпоинта
-           очищаем часть экрана.
+           Убираем половину
+           врагов при checkpoint.
         */
 
         enemies.splice(
             0,
-            Math.floor(enemies.length / 3)
+            Math.floor(
+                enemies.length / 2
+            )
         );
 
+
         /*
-           Даём маленькую
-           неуязвимость.
+           Небольшая защита
+           после нового уровня.
         */
 
-        player.invincible = 1800;
+        player.invincible =
+            1800;
 
     }
 
 }
 
+
+/* =========================================================
+   SAVE BEST SCORE
+========================================================= */
+
+function saveBestScore() {
+
+    if (
+        score > bestScore
+    ) {
+
+        bestScore =
+            Math.floor(score);
+
+
+        localStorage.setItem(
+            "skyDodgeBestScore",
+            bestScore
+        );
+
+
+        updateRecordUI();
+
+    }
+
+}
+
+
+/* =========================================================
+   CHECKPOINT MESSAGE
+========================================================= */
 
 function showCheckpoint() {
 
@@ -1554,22 +2119,37 @@ function showCheckpoint() {
             "checkpoint"
         );
 
+
     element.innerHTML =
-        `CHECKPOINT
-         <div style="
-         font-size:15px;
-         letter-spacing:2px;
-         margin-top:8px">
-         УРОВЕНЬ ${level}
-         </div>`;
+        `
+        CHECKPOINT
 
-    element.classList.add("show");
+        <div
+            style="
+            font-size:15px;
+            letter-spacing:2px;
+            margin-top:8px"
+        >
+            УРОВЕНЬ ${level}
+        </div>
+        `;
 
-    setTimeout(() => {
 
-        element.classList.remove("show");
+    element.classList.add(
+        "show"
+    );
 
-    }, 1700);
+
+    setTimeout(
+        () => {
+
+            element.classList.remove(
+                "show"
+            );
+
+        },
+        1700
+    );
 
 }
 
@@ -1583,21 +2163,39 @@ function updateHUD() {
     document.getElementById(
         "score"
     ).textContent =
-        Math.floor(score);
+        Math.floor(
+            score
+        );
+
+
+    document.getElementById(
+        "recordValue"
+    ).textContent =
+        bestScore;
 
 
     document.getElementById(
         "level"
     ).textContent =
-        "УРОВЕНЬ " + level;
+        "УРОВЕНЬ " +
+        level;
 
 
     document.getElementById(
         "lives"
     ).textContent =
-        "❤️ ".repeat(lives) +
+
+        "❤️ ".repeat(
+            lives
+        )
+
+        +
+
         "🖤 ".repeat(
-            Math.max(0, 3 - lives)
+            Math.max(
+                0,
+                3 - lives
+            )
         );
 
 }
@@ -1616,37 +2214,60 @@ function draw() {
        Screen shake
     */
 
-    if (screenShake > 0) {
+    if (
+        screenShake > 0
+    ) {
 
         const shake =
-            screenShake * .04;
+            screenShake *
+            .04;
+
 
         ctx.translate(
-            (Math.random() - .5) * shake,
-            (Math.random() - .5) * shake
+            (
+                Math.random() -
+                .5
+            ) * shake,
+
+            (
+                Math.random() -
+                .5
+            ) * shake
         );
 
-        screenShake -= 16;
+
+        screenShake -=
+            16;
 
     }
 
 
-    drawBackground(16);
+    drawBackground(
+        16
+    );
 
 
     /*
        Частицы
     */
 
-    for (const p of particles) {
+    for (
+        const p of particles
+    ) {
 
         ctx.globalAlpha =
-            Math.max(0, p.life);
+            Math.max(
+                0,
+                p.life
+            );
+
 
         ctx.fillStyle =
             p.color;
 
+
         ctx.beginPath();
+
 
         ctx.arc(
             p.x,
@@ -1656,20 +2277,27 @@ function draw() {
             Math.PI * 2
         );
 
+
         ctx.fill();
 
     }
 
-    ctx.globalAlpha = 1;
+
+    ctx.globalAlpha =
+        1;
 
 
     /*
        Враги
     */
 
-    for (const enemy of enemies) {
+    for (
+        const enemy of enemies
+    ) {
 
-        drawEnemy(enemy);
+        drawEnemy(
+            enemy
+        );
 
     }
 
@@ -1680,7 +2308,11 @@ function draw() {
 
     if (
         player.invincible <= 0 ||
-        Math.floor(player.invincible / 100) % 2 === 0
+
+        Math.floor(
+            player.invincible /
+            100
+        ) % 2 === 0
     ) {
 
         drawPlayer();
@@ -1689,15 +2321,16 @@ function draw() {
 
 
     /*
-       Центральная точка
-       под игроком
+       Круг вокруг игрока
     */
 
     ctx.save();
 
-    ctx.globalAlpha = .18;
+    ctx.globalAlpha =
+        .18;
 
-    ctx.strokeStyle = "#00eaff";
+    ctx.strokeStyle =
+        "#00eaff";
 
     ctx.beginPath();
 
@@ -1725,40 +2358,64 @@ function draw() {
 
 function loop(timestamp) {
 
-    if (!lastTime)
-        lastTime = timestamp;
+    if (!lastTime) {
+
+        lastTime =
+            timestamp;
+
+    }
+
 
     const dt =
         Math.min(
-            timestamp - lastTime,
+            timestamp -
+            lastTime,
+
             40
         );
 
-    lastTime = timestamp;
 
-    update(dt);
+    lastTime =
+        timestamp;
+
+
+    update(
+        dt
+    );
+
 
     draw();
 
-    requestAnimationFrame(loop);
+
+    requestAnimationFrame(
+        loop
+    );
 
 }
 
 
 /* =========================================================
-   START
+   START GAME
 ========================================================= */
 
 function startGame() {
 
     document
-        .getElementById("startScreen")
-        .classList.add("hidden");
+        .getElementById(
+            "startScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
 
 
     document
-        .getElementById("gameOver")
-        .classList.add("hidden");
+        .getElementById(
+            "gameOver"
+        )
+        .classList.add(
+            "hidden"
+        );
 
 
     score = 0;
@@ -1775,9 +2432,11 @@ function startGame() {
 
     checkpointTimer = 0;
 
-    player.x = W / 2;
+    player.x =
+        W / 2;
 
-    player.y = H / 2;
+    player.y =
+        H / 2;
 
     player.vx = 0;
 
@@ -1785,33 +2444,89 @@ function startGame() {
 
     player.angle = 0;
 
-    player.invincible = 1000;
+    player.invincible =
+        1200;
 
-    gameRunning = true;
+
+    gameRunning =
+        true;
+
+
+    resetJoystick();
 
     updateHUD();
 
 }
 
 
+/* =========================================================
+   GAME OVER
+========================================================= */
+
 function gameOver() {
 
-    gameRunning = false;
+    gameRunning =
+        false;
+
 
     resetJoystick();
 
-    document
-        .getElementById("finalText")
-        .innerHTML =
-        `
-        Ты достиг <b>уровня ${level}</b>.<br>
-        Счёт: <b>${Math.floor(score)}</b>
-        `;
+
+    /*
+       Сохраняем последний результат
+       ещё раз перед окончанием игры.
+    */
+
+    saveBestScore();
+
+
+    document.getElementById(
+        "finalScore"
+    ).textContent =
+        "Счёт: " +
+        Math.floor(
+            score
+        );
+
+
+    document.getElementById(
+        "finalLevel"
+    ).textContent =
+        level;
+
+
+    const newRecord =
+        document.getElementById(
+            "newRecord"
+        );
+
+
+    if (
+        score >= bestScore &&
+        score > 0
+    ) {
+
+        newRecord.textContent =
+            "🏆 НОВЫЙ РЕКОРД!";
+
+    }
+
+    else {
+
+        newRecord.textContent =
+            "🏆 Рекорд: " +
+            bestScore;
+
+    }
 
 
     document
-        .getElementById("gameOver")
-        .classList.remove("hidden");
+        .getElementById(
+            "gameOver"
+        )
+        .classList.remove(
+            "hidden"
+        );
 
 }
 
@@ -1821,7 +2536,9 @@ function gameOver() {
 ========================================================= */
 
 document
-    .getElementById("startButton")
+    .getElementById(
+        "startButton"
+    )
     .addEventListener(
         "click",
         startGame
@@ -1829,7 +2546,9 @@ document
 
 
 document
-    .getElementById("restartButton")
+    .getElementById(
+        "restartButton"
+    )
     .addEventListener(
         "click",
         startGame
@@ -1837,13 +2556,15 @@ document
 
 
 /* =========================================================
-   PREVENT MOBILE SCROLL
+   MOBILE PREVENT SCROLL
 ========================================================= */
 
 document.addEventListener(
     "touchmove",
     e => {
+
         e.preventDefault();
+
     },
     {
         passive: false
@@ -1852,12 +2573,16 @@ document.addEventListener(
 
 
 /* =========================================================
-   START LOOP
+   INIT
 ========================================================= */
+
+updateRecordUI();
 
 updateHUD();
 
-requestAnimationFrame(loop);
+requestAnimationFrame(
+    loop
+);
 
 </script>
 
