@@ -1,590 +1,750 @@
-```python
-import http.server
-import json
 import os
+import sqlite3
 import time
-from urllib.parse import urlparse
+import secrets
 
-HOST = "0.0.0.0"
-PORT = 8000
-
-SCORES_FILE = "scores.json"
+from flask import Flask, request, jsonify, session
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 # =========================================================
-# Работа с рекордами
+# SKY DODGE BACKEND
 # =========================================================
 
-def load_scores():
-    """Загрузить рекорды из файла."""
+app = Flask(__name__)
 
-    if not os.path.exists(SCORES_FILE):
-        return []
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    secrets.token_hex(32)
+)
 
-    try:
-        with open(
-            SCORES_FILE,
-            "r",
-            encoding="utf-8"
-        ) as file:
-            data = json.load(file)
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
 
-        if isinstance(data, list):
-            return data
-
-        return []
-
-    except (json.JSONDecodeError, OSError):
-        return []
+DATABASE = os.path.join(
+    BASE_DIR,
+    "sky_dodge.db"
+)
 
 
-def save_scores(scores):
-    """Сохранить рекорды в файл."""
+# =========================================================
+# DATABASE
+# =========================================================
 
-    temporary_file = SCORES_FILE + ".tmp"
+def get_db():
+    db = sqlite3.connect(DATABASE)
+    db.row_factory = sqlite3.Row
+    return db
+
+
+def init_database():
+
+    db = get_db()
+
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            username TEXT NOT NULL
+                UNIQUE COLLATE NOCASE,
+
+            password_hash TEXT NOT NULL,
+
+            created_at INTEGER NOT NULL
+        )
+    """)
+
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            user_id INTEGER NOT NULL
+                UNIQUE,
+
+            best_score INTEGER NOT NULL DEFAULT 0,
+
+            best_level INTEGER NOT NULL DEFAULT 1,
+
+            updated_at INTEGER NOT NULL,
+
+            FOREIGN KEY(user_id)
+                REFERENCES users(id)
+                ON DELETE CASCADE
+        )
+    """)
+
+    db.commit()
+    db.close()
+
+
+init_database()
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+
+def get_user():
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return None
+
+    db = get_db()
+
+    user = db.execute(
+        """
+        SELECT id, username
+        FROM users
+        WHERE id = ?
+        """,
+        (user_id,)
+    ).fetchone()
+
+    db.close()
+
+    return user
+
+
+def validate_username(username):
+
+    if not isinstance(username, str):
+        return None
+
+    username = username.strip()
+
+    if len(username) < 3:
+        return None
+
+    if len(username) > 20:
+        return None
+
+    allowed = (
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789"
+        "_-"
+    )
+
+    for char in username:
+
+        if char not in allowed:
+            return None
+
+    return username
+
+
+# =========================================================
+# MAIN PAGE
+# =========================================================
+
+@app.route("/")
+def index():
+
+    index_file = os.path.join(
+        BASE_DIR,
+        "index.html"
+    )
+
+    if not os.path.exists(index_file):
+
+        return """
+        <h1>SKY DODGE</h1>
+        <p>index.html не найден.</p>
+        """, 404
 
     with open(
-        temporary_file,
-        "w",
+        index_file,
+        "r",
         encoding="utf-8"
     ) as file:
 
-        json.dump(
-            scores,
-            file,
-            ensure_ascii=False,
-            indent=4
-        )
-
-    os.replace(
-        temporary_file,
-        SCORES_FILE
-    )
-
-
-def sort_scores(scores):
-    """Отсортировать рекорды от большего к меньшему."""
-
-    return sorted(
-        scores,
-        key=lambda item: (
-            int(item.get("score", 0)),
-            int(item.get("level", 1))
-        ),
-        reverse=True
-    )
+        return file.read()
 
 
 # =========================================================
-# HTTP SERVER
+# REGISTER
 # =========================================================
 
-class SkyDodgeServer(
-    http.server.SimpleHTTPRequestHandler
-):
-
-    server_version = "SkyDodge/1.0"
-
-    # -----------------------------------------------------
-    # GET
-    # -----------------------------------------------------
-
-    def do_GET(self):
-
-        path = urlparse(self.path).path
-
-        # Главная страница
-        if path == "/":
-
-            self.serve_file("index.html")
-            return
-
-        # -------------------------------------------------
-        # Получить все рекорды
-        # -------------------------------------------------
-
-        if path == "/api/scores":
-
-            scores = load_scores()
-
-            scores = sort_scores(scores)
-
-            self.send_json(
-                {
-                    "success": True,
-                    "scores": scores[:50]
-                }
-            )
-
-            return
-
-        # -------------------------------------------------
-        # Получить лучший результат
-        # -------------------------------------------------
-
-        if path == "/api/best":
-
-            scores = load_scores()
-
-            if not scores:
-
-                self.send_json(
-                    {
-                        "success": True,
-                        "best": None
-                    }
-                )
-
-                return
-
-            scores = sort_scores(scores)
-
-            self.send_json(
-                {
-                    "success": True,
-                    "best": scores[0]
-                }
-            )
-
-            return
-
-        # -------------------------------------------------
-        # Статистика игры
-        # -------------------------------------------------
-
-        if path == "/api/stats":
-
-            scores = load_scores()
-
-            if not scores:
-
-                self.send_json(
-                    {
-                        "success": True,
-                        "players": 0,
-                        "best_score": 0,
-                        "best_level": 0
-                    }
-                )
-
-                return
-
-            scores = sort_scores(scores)
-
-            best_score = int(
-                scores[0].get("score", 0)
-            )
-
-            best_level = max(
-                int(item.get("level", 1))
-                for item in scores
-            )
-
-            self.send_json(
-                {
-                    "success": True,
-                    "players": len(scores),
-                    "best_score": best_score,
-                    "best_level": best_level
-                }
-            )
-
-            return
-
-        # -------------------------------------------------
-        # Неизвестный адрес
-        # -------------------------------------------------
-
-        self.send_error(
-            404,
-            "Страница не найдена"
-        )
-
-    # -----------------------------------------------------
-    # POST
-    # -----------------------------------------------------
-
-    def do_POST(self):
-
-        path = urlparse(self.path).path
-
-        # -------------------------------------------------
-        # Добавить результат игрока
-        # -------------------------------------------------
-
-        if path == "/api/scores":
-
-            try:
-                content_length = int(
-                    self.headers.get(
-                        "Content-Length",
-                        0
-                    )
-                )
-
-                raw_data = self.rfile.read(
-                    content_length
-                )
-
-                data = json.loads(
-                    raw_data.decode("utf-8")
-                )
-
-            except (
-                ValueError,
-                json.JSONDecodeError
-            ):
-
-                self.send_json(
-                    {
-                        "success": False,
-                        "error": "Некорректные данные"
-                    },
-                    status=400
-                )
-
-                return
-
-            # Имя
-            name = str(
-                data.get(
-                    "name",
-                    "Player"
-                )
-            ).strip()
-
-            if not name:
-                name = "Player"
-
-            # Максимум 20 символов
-            name = name[:20]
-
-            # Счёт
-            try:
-
-                score = int(
-                    data.get(
-                        "score",
-                        0
-                    )
-                )
-
-            except (TypeError, ValueError):
-
-                self.send_json(
-                    {
-                        "success": False,
-                        "error": "Некорректный score"
-                    },
-                    status=400
-                )
-
-                return
-
-            # Уровень
-            try:
-
-                level = int(
-                    data.get(
-                        "level",
-                        1
-                    )
-                )
-
-            except (TypeError, ValueError):
-
-                self.send_json(
-                    {
-                        "success": False,
-                        "error": "Некорректный level"
-                    },
-                    status=400
-                )
-
-                return
-
-            # Защита от отрицательных значений
-            score = max(0, score)
-            level = max(1, level)
-
-            # -------------------------------------------------
-            # Создаём запись
-            # -------------------------------------------------
-
-            record = {
-                "name": name,
-                "score": score,
-                "level": level,
-                "timestamp": int(time.time())
-            }
-
-            # Загружаем существующие
-            scores = load_scores()
-
-            # Добавляем новую запись
-            scores.append(record)
-
-            # Сортируем
-            scores = sort_scores(scores)
-
-            # Оставляем 100 лучших
-            scores = scores[:100]
-
-            # Сохраняем
-            save_scores(scores)
-
-            # Позиция игрока
-            position = None
-
-            for index, item in enumerate(scores):
-
-                if item is record:
-                    position = index + 1
-                    break
-
-            # Если запись не вошла в топ
-            if position is None:
-
-                position = len(scores)
-
-            # Проверяем, стал ли игрок первым
-            is_best = (
-                scores[0] is record
-            )
-
-            self.send_json(
-                {
-                    "success": True,
-                    "position": position,
-                    "is_best": is_best,
-                    "record": record
-                }
-            )
-
-            return
-
-        # -------------------------------------------------
-        # Очистить рекорды
-        # -------------------------------------------------
-        #
-        # Этот endpoint можно использовать
-        # только с локального сервера.
-        #
-        # Например:
-        #
-        # POST /api/reset
-        #
-        # -------------------------------------------------
-
-        if path == "/api/reset":
-
-            save_scores([])
-
-            self.send_json(
-                {
-                    "success": True,
-                    "message": "Рекорды очищены"
-                }
-            )
-
-            return
-
-        # -------------------------------------------------
-        # Неизвестный POST
-        # -------------------------------------------------
-
-        self.send_json(
-            {
-                "success": False,
-                "error": "Неизвестный API адрес"
-            },
-            status=404
-        )
-
-    # -----------------------------------------------------
-    # Отправка JSON
-    # -----------------------------------------------------
-
-    def send_json(
-        self,
-        data,
-        status=200
+@app.route(
+    "/api/register",
+    methods=["POST"]
+)
+def register():
+
+    data = request.get_json(
+        silent=True
+    ) or {}
+
+    username = validate_username(
+        data.get("username")
+    )
+
+    password = data.get(
+        "password"
+    )
+
+    if not username:
+
+        return jsonify({
+            "success": False,
+            "message":
+                "Ник должен содержать от 3 до 20 символов."
+        }), 400
+
+    if not isinstance(
+        password,
+        str
     ):
 
-        response = json.dumps(
-            data,
-            ensure_ascii=False
-        ).encode("utf-8")
+        return jsonify({
+            "success": False,
+            "message":
+                "Введите пароль."
+        }), 400
 
-        self.send_response(status)
+    if len(password) < 6:
 
-        self.send_header(
-            "Content-Type",
-            "application/json; charset=utf-8"
+        return jsonify({
+            "success": False,
+            "message":
+                "Пароль должен содержать минимум 6 символов."
+        }), 400
+
+    if len(password) > 128:
+
+        return jsonify({
+            "success": False,
+            "message":
+                "Пароль слишком длинный."
+        }), 400
+
+    db = get_db()
+
+    exists = db.execute(
+        """
+        SELECT id
+        FROM users
+        WHERE username = ?
+        """,
+        (username,)
+    ).fetchone()
+
+    if exists:
+
+        db.close()
+
+        return jsonify({
+            "success": False,
+            "message":
+                "Такой ник уже существует."
+        }), 409
+
+    password_hash = (
+        generate_password_hash(
+            password
         )
-
-        self.send_header(
-            "Content-Length",
-            str(len(response))
-        )
-
-        self.send_header(
-            "Cache-Control",
-            "no-store"
-        )
-
-        self.send_header(
-            "Access-Control-Allow-Origin",
-            "*"
-        )
-
-        self.send_header(
-            "Access-Control-Allow-Methods",
-            "GET, POST, OPTIONS"
-        )
-
-        self.send_header(
-            "Access-Control-Allow-Headers",
-            "Content-Type"
-        )
-
-        self.end_headers()
-
-        self.wfile.write(response)
-
-    # -----------------------------------------------------
-    # OPTIONS
-    # -----------------------------------------------------
-
-    def do_OPTIONS(self):
-
-        self.send_response(204)
-
-        self.send_header(
-            "Access-Control-Allow-Origin",
-            "*"
-        )
-
-        self.send_header(
-            "Access-Control-Allow-Methods",
-            "GET, POST, OPTIONS"
-        )
-
-        self.send_header(
-            "Access-Control-Allow-Headers",
-            "Content-Type"
-        )
-
-        self.end_headers()
-
-    # -----------------------------------------------------
-    # Отдать файл
-    # -----------------------------------------------------
-
-    def serve_file(self, filename):
-
-        if not os.path.exists(filename):
-
-            self.send_error(
-                404,
-                f"Файл {filename} не найден"
-            )
-
-            return
-
-        try:
-
-            with open(
-                filename,
-                "rb"
-            ) as file:
-
-                content = file.read()
-
-            self.send_response(200)
-
-            self.send_header(
-                "Content-Type",
-                "text/html; charset=utf-8"
-            )
-
-            self.send_header(
-                "Content-Length",
-                str(len(content))
-            )
-
-            self.end_headers()
-
-            self.wfile.write(content)
-
-        except OSError:
-
-            self.send_error(
-                500,
-                "Не удалось открыть файл"
-            )
-
-
-# =========================================================
-# ЗАПУСК
-# =========================================================
-
-def main():
-
-    print()
-    print("=" * 45)
-    print("            SKY DODGE SERVER")
-    print("=" * 45)
-    print()
-
-    print(
-        f"Игра: http://localhost:{PORT}"
     )
 
-    print(
-        f"Рекорды: http://localhost:{PORT}/api/scores"
-    )
+    now = int(time.time())
 
-    print(
-        f"Статистика: http://localhost:{PORT}/api/stats"
-    )
-
-    print(
-        f"Лучший результат: http://localhost:{PORT}/api/best"
-    )
-
-    print()
-
-    print(
-        "Для остановки нажми CTRL+C"
-    )
-
-    print()
-
-
-    server = http.server.ThreadingHTTPServer(
+    cursor = db.execute(
+        """
+        INSERT INTO users
         (
-            HOST,
-            PORT
-        ),
-        SkyDodgeServer
+            username,
+            password_hash,
+            created_at
+        )
+        VALUES (?, ?, ?)
+        """,
+        (
+            username,
+            password_hash,
+            now
+        )
     )
 
+    user_id = cursor.lastrowid
+
+    db.execute(
+        """
+        INSERT INTO scores
+        (
+            user_id,
+            best_score,
+            best_level,
+            updated_at
+        )
+        VALUES (?, 0, 1, ?)
+        """,
+        (
+            user_id,
+            now
+        )
+    )
+
+    db.commit()
+    db.close()
+
+    session.clear()
+
+    session["user_id"] = user_id
+
+    return jsonify({
+        "success": True,
+        "message":
+            "Аккаунт создан.",
+        "user": {
+            "id": user_id,
+            "username": username
+        }
+    })
+
+
+# =========================================================
+# LOGIN
+# =========================================================
+
+@app.route(
+    "/api/login",
+    methods=["POST"]
+)
+def login():
+
+    data = request.get_json(
+        silent=True
+    ) or {}
+
+    username = validate_username(
+        data.get("username")
+    )
+
+    password = data.get(
+        "password"
+    )
+
+    if not username or not password:
+
+        return jsonify({
+            "success": False,
+            "message":
+                "Введите ник и пароль."
+        }), 400
+
+    db = get_db()
+
+    user = db.execute(
+        """
+        SELECT
+            id,
+            username,
+            password_hash
+
+        FROM users
+
+        WHERE username = ?
+        """,
+        (username,)
+    ).fetchone()
+
+    db.close()
+
+    if not user:
+
+        return jsonify({
+            "success": False,
+            "message":
+                "Неверный ник или пароль."
+        }), 401
+
+    if not check_password_hash(
+        user["password_hash"],
+        password
+    ):
+
+        return jsonify({
+            "success": False,
+            "message":
+                "Неверный ник или пароль."
+        }), 401
+
+    session.clear()
+
+    session["user_id"] = (
+        user["id"]
+    )
+
+    return jsonify({
+        "success": True,
+        "message":
+            "Вход выполнен.",
+        "user": {
+            "id":
+                user["id"],
+
+            "username":
+                user["username"]
+        }
+    })
+
+
+# =========================================================
+# LOGOUT
+# =========================================================
+
+@app.route(
+    "/api/logout",
+    methods=["POST"]
+)
+def logout():
+
+    session.clear()
+
+    return jsonify({
+        "success": True,
+        "message":
+            "Вы вышли из аккаунта."
+    })
+
+
+# =========================================================
+# CURRENT USER
+# =========================================================
+
+@app.route(
+    "/api/me",
+    methods=["GET"]
+)
+def me():
+
+    user = get_user()
+
+    if not user:
+
+        return jsonify({
+            "success": True,
+            "logged_in": False
+        })
+
+    db = get_db()
+
+    score = db.execute(
+        """
+        SELECT
+            best_score,
+            best_level
+
+        FROM scores
+
+        WHERE user_id = ?
+        """,
+        (user["id"],)
+    ).fetchone()
+
+    db.close()
+
+    return jsonify({
+
+        "success": True,
+
+        "logged_in": True,
+
+        "user": {
+            "id":
+                user["id"],
+
+            "username":
+                user["username"]
+        },
+
+        "score": {
+
+            "best_score":
+                score["best_score"]
+                if score else 0,
+
+            "best_level":
+                score["best_level"]
+                if score else 1
+        }
+    })
+
+
+# =========================================================
+# SAVE SCORE
+# =========================================================
+
+@app.route(
+    "/api/score",
+    methods=["POST"]
+)
+def save_score():
+
+    user = get_user()
+
+    if not user:
+
+        return jsonify({
+            "success": False,
+            "logged_in": False,
+            "message":
+                "Войдите в аккаунт."
+        }), 401
+
+    data = request.get_json(
+        silent=True
+    ) or {}
 
     try:
 
-        server.serve_forever()
+        score = int(
+            data.get(
+                "score",
+                0
+            )
+        )
 
-    except KeyboardInterrupt:
+        level = int(
+            data.get(
+                "level",
+                1
+            )
+        )
 
-        print()
-        print("Сервер остановлен.")
+    except (
+        ValueError,
+        TypeError
+    ):
 
-    finally:
+        return jsonify({
+            "success": False,
+            "message":
+                "Некорректный счёт."
+        }), 400
 
-        server.server_close()
+    if score < 0:
 
+        return jsonify({
+            "success": False,
+            "message":
+                "Счёт не может быть отрицательным."
+        }), 400
+
+    if score > 10_000_000:
+
+        return jsonify({
+            "success": False,
+            "message":
+                "Слишком большой счёт."
+        }), 400
+
+    if level < 1:
+
+        level = 1
+
+    expected_level = (
+        score // 50
+    ) + 1
+
+    if level > expected_level:
+
+        level = expected_level
+
+    db = get_db()
+
+    old = db.execute(
+        """
+        SELECT
+            best_score,
+            best_level
+
+        FROM scores
+
+        WHERE user_id = ?
+        """,
+        (user["id"],)
+    ).fetchone()
+
+    old_score = (
+        old["best_score"]
+        if old
+        else 0
+    )
+
+    old_level = (
+        old["best_level"]
+        if old
+        else 1
+    )
+
+    new_record = (
+        score > old_score
+    )
+
+    if new_record:
+
+        best_score = score
+        best_level = level
+
+    else:
+
+        best_score = old_score
+        best_level = old_level
+
+    now = int(time.time())
+
+    db.execute(
+        """
+        INSERT INTO scores
+        (
+            user_id,
+            best_score,
+            best_level,
+            updated_at
+        )
+
+        VALUES (?, ?, ?, ?)
+
+        ON CONFLICT(user_id)
+
+        DO UPDATE SET
+
+            best_score =
+                excluded.best_score,
+
+            best_level =
+                excluded.best_level,
+
+            updated_at =
+                excluded.updated_at
+        """,
+        (
+            user["id"],
+            best_score,
+            best_level,
+            now
+        )
+    )
+
+    db.commit()
+    db.close()
+
+    return jsonify({
+
+        "success": True,
+
+        "new_record":
+            new_record,
+
+        "best_score":
+            best_score,
+
+        "best_level":
+            best_level
+    })
+
+
+# =========================================================
+# LEADERBOARD
+# =========================================================
+
+@app.route(
+    "/api/leaderboard",
+    methods=["GET"]
+)
+def leaderboard():
+
+    db = get_db()
+
+    rows = db.execute(
+        """
+        SELECT
+            users.username,
+            scores.best_score,
+            scores.best_level
+
+        FROM scores
+
+        JOIN users
+        ON users.id = scores.user_id
+
+        ORDER BY
+            scores.best_score DESC,
+            scores.best_level DESC,
+            scores.updated_at ASC
+
+        LIMIT 100
+        """
+    ).fetchall()
+
+    db.close()
+
+    leaderboard_data = []
+
+    for position, row in enumerate(
+        rows,
+        start=1
+    ):
+
+        leaderboard_data.append({
+
+            "position":
+                position,
+
+            "username":
+                row["username"],
+
+            "score":
+                row["best_score"],
+
+            "level":
+                row["best_level"]
+        })
+
+    return jsonify({
+
+        "success": True,
+
+        "leaderboard":
+            leaderboard_data
+    })
+
+
+# =========================================================
+# HEALTH CHECK
+# =========================================================
+
+@app.route(
+    "/api/health",
+    methods=["GET"]
+)
+def health():
+
+    return jsonify({
+        "success": True,
+        "status": "online",
+        "game": "SKY DODGE"
+    })
+
+
+# =========================================================
+# START
+# =========================================================
 
 if __name__ == "__main__":
-    main()
-```
+
+    port = int(
+        os.environ.get(
+            "PORT",
+            5000
+        )
+    )
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
