@@ -1,141 +1,526 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SKY DODGE</title>
+
+<meta name="viewport"
+      content="width=device-width,
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no,
+      viewport-fit=cover">
+
+<meta name="theme-color" content="#050914">
+
+<title>SKY DODGE MOBILE</title>
 
 <style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
-    -webkit-user-select: none;
+:root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
 }
 
-html, body {
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+html,
+body {
+    margin: 0;
     width: 100%;
     height: 100%;
+    min-height: 100dvh;
     overflow: hidden;
     background: #050914;
     font-family: Arial, sans-serif;
+    touch-action: none;
+    overscroll-behavior: none;
 }
 
 body {
+    position: fixed;
+    inset: 0;
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    display: block;
     touch-action: none;
 }
 
-#game {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    background: linear-gradient(#07152c, #020611);
-}
+/* =========================
+   HUD
+========================= */
 
 #hud {
     position: fixed;
-    top: 15px;
-    left: 15px;
-    right: 15px;
-    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding:
+        calc(10px + var(--safe-top))
+        calc(12px + var(--safe-right))
+        10px
+        calc(12px + var(--safe-left));
 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-
+    z-index: 5;
     pointer-events: none;
+    text-shadow: 0 2px 8px #000;
 }
 
-.hudBox {
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 12px;
-    padding: 8px 12px;
-    backdrop-filter: blur(5px);
+#gameName {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    opacity: .8;
 }
 
-#gameOver {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-
-    display: none;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-
-    background: rgba(0, 0, 0, 0.75);
-    color: white;
-    text-align: center;
+#score {
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 1000;
+    margin-top: 5px;
 }
 
-#gameOver h1 {
-    font-size: 42px;
-    margin-bottom: 15px;
+#record {
+    font-size: 13px;
+    color: #ffd84d;
+    font-weight: 800;
+    margin-top: 4px;
 }
 
-#gameOver p {
-    font-size: 20px;
-    margin-bottom: 20px;
+#level {
+    font-size: 13px;
+    color: #66ddff;
+    font-weight: 800;
+    margin-top: 3px;
 }
 
-#restart {
-    border: none;
-    background: #2196f3;
-    color: white;
+#lives {
     font-size: 18px;
-    font-weight: bold;
-    padding: 14px 25px;
-    border-radius: 12px;
-    cursor: pointer;
+    margin-top: 4px;
+    letter-spacing: 2px;
 }
 
-#restart:active {
-    transform: scale(0.95);
+/* =========================
+   USER
+========================= */
+
+#userBox {
+    position: fixed;
+    top: calc(10px + var(--safe-top));
+    right: calc(10px + var(--safe-right));
+    z-index: 7;
+    pointer-events: auto;
+    font-size: 11px;
+    text-align: right;
 }
+
+#logoutBtn {
+    margin-top: 5px;
+    padding: 6px 8px;
+    font-size: 10px;
+    letter-spacing: 0;
+}
+
+/* =========================
+   CHECKPOINT
+========================= */
+
+#checkpoint {
+    position: fixed;
+    left: 50%;
+    top: 23%;
+
+    transform:
+        translate(-50%, -50%)
+        scale(.78);
+
+    width: 90%;
+    text-align: center;
+
+    z-index: 12;
+    pointer-events: none;
+
+    opacity: 0;
+
+    font-size: clamp(24px, 8vw, 38px);
+    font-weight: 1000;
+    letter-spacing: 4px;
+
+    text-shadow:
+        3px 0 #00eaff,
+        -3px 0 #ff00cc,
+        0 0 28px #fff;
+
+    transition: .22s;
+}
+
+#checkpoint.show {
+    opacity: 1;
+
+    transform:
+        translate(-50%, -50%)
+        scale(1);
+}
+
+/* =========================
+   JOYSTICK
+========================= */
 
 #joystick {
     position: fixed;
-    left: 25px;
-    bottom: 25px;
 
-    width: 130px;
-    height: 130px;
+    left: 50%;
+    bottom:
+        calc(24px + var(--safe-bottom));
+
+    transform: translateX(-50%);
+
+    width: 168px;
+    height: 168px;
 
     border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    border: 2px solid rgba(255,255,255,0.2);
 
-    z-index: 15;
+    z-index: 20;
+
+    border:
+        2px solid rgba(100, 220, 255, .34);
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255,255,255,.12),
+            rgba(40,170,255,.05) 58%,
+            rgba(0,0,0,.20)
+        );
+
+    box-shadow:
+        0 0 32px rgba(0, 200, 255, .14),
+        inset 0 0 35px rgba(0, 200, 255, .10);
+
+    touch-action: none;
+}
+
+#joystick::before {
+    content: "";
+
+    position: absolute;
+    left: 50%;
+    top: 50%;
+
+    width: 10px;
+    height: 10px;
+
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background:
+        rgba(255,255,255,.28);
 }
 
 #stick {
     position: absolute;
 
-    width: 55px;
-    height: 55px;
-
     left: 50%;
     top: 50%;
 
-    margin-left: -27.5px;
-    margin-top: -27.5px;
+    width: 74px;
+    height: 74px;
+
+    transform: translate(-50%, -50%);
 
     border-radius: 50%;
-    background: rgba(255,255,255,0.35);
-    border: 2px solid rgba(255,255,255,0.5);
+
+    border:
+        2px solid rgba(255,255,255,.72);
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #a4f7ff,
+            #21a9df 45%,
+            #075d96
+        );
+
+    box-shadow:
+        0 0 24px rgba(0, 210, 255, .70),
+        inset 0 0 18px rgba(255,255,255,.25);
+
+    touch-action: none;
+    will-change: transform;
 }
 
-@media (min-width: 800px) {
+#joystickText {
+    position: absolute;
+    left: 0;
+    bottom: -22px;
+    width: 100%;
+
+    text-align: center;
+
+    color: rgba(255,255,255,.45);
+    font-size: 9px;
+    letter-spacing: 2px;
+}
+
+/* =========================
+   SCREENS
+========================= */
+
+.screen {
+    position: fixed;
+    inset: 0;
+
+    width: 100%;
+    height: 100dvh;
+
+    z-index: 50;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    padding:
+        calc(18px + var(--safe-top))
+        calc(18px + var(--safe-right))
+        calc(18px + var(--safe-bottom))
+        calc(18px + var(--safe-left));
+
+    text-align: center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #10233d 0%,
+            #050914 62%,
+            #02040a 100%
+        );
+}
+
+.screen h1 {
+    margin: 0;
+
+    font-size:
+        clamp(44px, 15vw, 92px);
+
+    font-weight: 1000;
+
+    line-height: .92;
+
+    letter-spacing: 6px;
+
+    text-shadow:
+        4px 0 #00eaff,
+        -4px 0 #ff008c,
+        0 0 40px #00aaff;
+}
+
+.screen p {
+    width: min(92vw, 520px);
+
+    margin: 14px 0;
+
+    color: #9eb1c7;
+
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.panel {
+    width: min(92vw, 390px);
+
+    padding: 20px;
+
+    border:
+        1px solid #22516d;
+
+    background:
+        rgba(7, 16, 28, .88);
+
+    border-radius: 16px;
+
+    backdrop-filter: blur(8px);
+}
+
+input {
+    width: 100%;
+    height: 48px;
+
+    margin: 6px 0;
+
+    padding: 0 14px;
+
+    border-radius: 10px;
+
+    border:
+        1px solid #2b516f;
+
+    background: #081321;
+
+    color: white;
+
+    outline: none;
+
+    font-size: 16px;
+    touch-action: manipulation;
+}
+
+button {
+    min-height: 46px;
+
+    border: 0;
+    border-radius: 10px;
+
+    padding:
+        12px 18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #00bfff,
+            #0066ff
+        );
+
+    color: white;
+
+    font-weight: 900;
+
+    font-size: 14px;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 24px
+        rgba(0, 102, 255, .30);
+
+    touch-action: manipulation;
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+.row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.row button {
+    flex: 1 1 140px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.small {
+    color: #7f98ad;
+    font-size: 12px;
+}
+
+.gold {
+    color: #ffd84d;
+    font-weight: 800;
+}
+
+.danger {
+    color: #ff668a !important;
+}
+
+#message {
+    min-height: 22px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #90dfff;
+}
+
+#leaderboard {
+    width: min(94vw, 600px);
+    max-height: 63dvh;
+    overflow: auto;
+    margin-top: 12px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.table th,
+.table td {
+    padding: 9px 6px;
+    border-bottom: 1px solid #163248;
+}
+
+.table th {
+    color: #66ddff;
+    text-align: left;
+}
+
+/* =========================
+   LANDSCAPE
+========================= */
+
+@media (orientation: landscape) and (max-height: 520px) {
+
     #joystick {
-        opacity: 0.35;
+        width: 125px;
+        height: 125px;
+        bottom: 12px;
+    }
+
+    #stick {
+        width: 56px;
+        height: 56px;
+    }
+
+    #joystickText {
+        display: none;
+    }
+
+    #hud {
+        padding-top: 7px;
+    }
+}
+
+/* =========================
+   SMALL PHONES
+========================= */
+
+@media (max-height: 680px) and (orientation: portrait) {
+
+    #joystick {
+        width: 148px;
+        height: 148px;
+        bottom:
+            calc(15px + var(--safe-bottom));
+    }
+
+    #stick {
+        width: 66px;
+        height: 66px;
+    }
+
+    .screen p {
+        margin: 10px 0;
+        font-size: 13px;
     }
 }
 </style>
@@ -146,890 +531,2807 @@ body {
 <canvas id="game"></canvas>
 
 <div id="hud">
-    <div class="hudBox">
-        Счёт: <span id="score">0</span>
+
+    <div id="gameName">
+        SKY DODGE
     </div>
 
-    <div class="hudBox">
-        Рекорд: <span id="best">0</span>
+    <div id="score">
+        0
     </div>
 
-    <div class="hudBox">
-        Уровень: <span id="level">1</span>
+    <div id="record">
+        🏆 РЕКОРД:
+        <span id="recordValue">0</span>
     </div>
 
-    <div class="hudBox">
-        ❤️ <span id="lives">3</span>
+    <div id="level">
+        УРОВЕНЬ 1
     </div>
+
+    <div id="lives">
+        ❤️ ❤️ ❤️
+    </div>
+
 </div>
 
-<div id="gameOver">
-    <h1>ИГРА ОКОНЧЕНА</h1>
-
-    <p>
-        Счёт: <span id="finalScore">0</span>
-    </p>
-
-    <p>
-        Уровень: <span id="finalLevel">1</span>
-    </p>
-
-    <button id="restart">
-        Играть снова
+<div id="userBox">
+    <span id="userLabel"></span>
+    <br>
+    <button id="logoutBtn" class="hidden">
+        Выйти
     </button>
 </div>
 
+<div id="checkpoint">
+
+    CHECKPOINT
+
+    <div
+        id="checkpointSub"
+        style="
+        font-size:14px;
+        letter-spacing:2px;
+        margin-top:8px">
+    </div>
+
+</div>
+
 <div id="joystick">
+
     <div id="stick"></div>
+
+    <div id="joystickText">
+        УПРАВЛЕНИЕ
+    </div>
+
+</div>
+
+<!-- ================= AUTH ================= -->
+
+<div id="authScreen" class="screen">
+
+    <div class="panel">
+
+        <h1
+            style="
+            font-size:42px;
+            letter-spacing:3px">
+            SKY DODGE
+        </h1>
+
+        <p>
+            Мобильная версия.<br>
+            Джойстик настроен под управление пальцем.
+        </p>
+
+        <input
+            id="username"
+            maxlength="20"
+            autocomplete="username"
+            placeholder="Ник">
+
+        <input
+            id="password"
+            type="password"
+            minlength="6"
+            autocomplete="current-password"
+            placeholder="Пароль">
+
+        <div class="row">
+
+            <button id="registerBtn">
+                РЕГИСТРАЦИЯ
+            </button>
+
+            <button id="loginBtn">
+                ВОЙТИ
+            </button>
+
+        </div>
+
+        <div
+            class="row"
+            style="margin-top:10px">
+
+            <button
+                id="guestBtn"
+                style="background:#16283a">
+                ИГРАТЬ КАК ГОСТЬ
+            </button>
+
+            <button
+                id="leadersBtn"
+                style="background:#16283a">
+                🏆 ЛИДЕРЫ
+            </button>
+
+        </div>
+
+        <div id="message"></div>
+
+    </div>
+
+</div>
+
+<!-- ================= START ================= -->
+
+<div
+    id="startScreen"
+    class="screen hidden">
+
+    <h1>
+        SKY<br>DODGE
+    </h1>
+
+    <p>
+        Веди самолёт пальцем через джойстик.
+        Уворачивайся от врагов.
+        Каждые 50 очков — новый уровень.
+    </p>
+
+    <div
+        id="accountInfo"
+        class="small">
+    </div>
+
+    <button id="startBtn">
+        НАЧАТЬ ПОЛЁТ
+    </button>
+
+    <button
+        id="startLeadersBtn"
+        style="
+        background:#16283a;
+        margin-top:10px">
+        🏆 ТАБЛИЦА ЛИДЕРОВ
+    </button>
+
+</div>
+
+<!-- ================= LEADERBOARD ================= -->
+
+<div
+    id="leaderScreen"
+    class="screen hidden">
+
+    <h1
+        style="
+        font-size:38px;
+        letter-spacing:3px">
+        ТОП-100
+    </h1>
+
+    <div
+        id="leaderboard"
+        class="panel">
+        Загрузка...
+    </div>
+
+    <button id="closeLeadersBtn">
+        НАЗАД
+    </button>
+
+</div>
+
+<!-- ================= GAME OVER ================= -->
+
+<div
+    id="gameOver"
+    class="screen hidden">
+
+    <h1 style="font-size:50px">
+        РАЗБИЛСЯ
+    </h1>
+
+    <p id="finalScore"></p>
+
+    <p id="finalLevel"></p>
+
+    <div
+        id="recordNotice"
+        class="gold">
+    </div>
+
+    <div class="row">
+
+        <button id="restartBtn">
+            ПОВТОРИТЬ
+        </button>
+
+        <button
+            id="gameLeadersBtn"
+            style="background:#16283a">
+            🏆 ЛИДЕРЫ
+        </button>
+
+    </div>
+
 </div>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
 
-const scoreText = document.getElementById("score");
-const bestText = document.getElementById("best");
-const levelText = document.getElementById("level");
-const livesText = document.getElementById("lives");
+/* =========================================================
+   CANVAS
+========================================================= */
 
-const gameOverScreen = document.getElementById("gameOver");
-const finalScoreText = document.getElementById("finalScore");
-const finalLevelText = document.getElementById("finalLevel");
-const restartButton = document.getElementById("restart");
+const canvas =
+    document.getElementById("game");
 
-const joystick = document.getElementById("joystick");
-const stick = document.getElementById("stick");
+const ctx =
+    canvas.getContext(
+        "2d",
+        {
+            alpha: false
+        }
+    );
 
-let width = window.innerWidth;
-let height = window.innerHeight;
+let W =
+    window.innerWidth;
+
+let H =
+    window.innerHeight;
+
+let DPR = 1;
+
 
 function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
 
-    canvas.width = width * devicePixelRatio;
-    canvas.height = height * devicePixelRatio;
+    W =
+        window.innerWidth;
 
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
+    H =
+        window.innerHeight;
+
+    DPR =
+        Math.min(
+            window.devicePixelRatio || 1,
+            2
+        );
+
+    canvas.width =
+        Math.floor(
+            W * DPR
+        );
+
+    canvas.height =
+        Math.floor(
+            H * DPR
+        );
+
+    canvas.style.width =
+        W + "px";
+
+    canvas.style.height =
+        H + "px";
 
     ctx.setTransform(
-        devicePixelRatio,
+        DPR,
         0,
         0,
-        devicePixelRatio,
+        DPR,
         0,
         0
     );
-}
 
-window.addEventListener("resize", resize);
-resize();
-
-
-// ===============================
-// ИГРОК
-// ===============================
-
-const player = {
-    x: width / 2,
-    y: height - 120,
-
-    width: 38,
-    height: 55,
-
-    speed: 6,
-
-    dx: 0,
-    dy: 0
-};
-
-
-// ===============================
-// ИГРА
-// ===============================
-
-let score = 0;
-let level = 1;
-let lives = 3;
-
-let gameRunning = true;
-
-let enemies = [];
-let particles = [];
-
-let lastTime = performance.now();
-let spawnTimer = 0;
-
-
-// ===============================
-// РЕКОРД
-// ===============================
-
-let bestScore =
-    Number(localStorage.getItem("skyDodgeBestScore")) || 0;
-
-bestText.textContent = bestScore;
-
-
-// ===============================
-// УПРАВЛЕНИЕ
-// ===============================
-
-const keys = {};
-
-window.addEventListener("keydown", (event) => {
-    keys[event.key.toLowerCase()] = true;
 
     if (
-        event.key === "ArrowUp" ||
-        event.key === "ArrowDown" ||
-        event.key === "ArrowLeft" ||
-        event.key === "ArrowRight"
+        typeof player !==
+        "undefined"
     ) {
-        event.preventDefault();
-    }
-});
 
-window.addEventListener("keyup", (event) => {
-    keys[event.key.toLowerCase()] = false;
-});
-
-
-// ===============================
-// ДЖОЙСТИК
-// ===============================
-
-let joystickActive = false;
-
-let joystickX = 0;
-let joystickY = 0;
-
-function updateJoystick(clientX, clientY) {
-    const rect = joystick.getBoundingClientRect();
-
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-
-    let dx = clientX - centerX;
-    let dy = clientY - centerY;
-
-    const maxDistance = rect.width / 2 - 30;
-
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance > maxDistance) {
-        dx = dx / distance * maxDistance;
-        dy = dy / distance * maxDistance;
-    }
-
-    joystickX = dx / maxDistance;
-    joystickY = dy / maxDistance;
-
-    stick.style.transform =
-        `translate(${dx}px, ${dy}px)`;
-}
-
-function resetJoystick() {
-    joystickActive = false;
-
-    joystickX = 0;
-    joystickY = 0;
-
-    stick.style.transform = "translate(0, 0)";
-}
-
-joystick.addEventListener("pointerdown", (event) => {
-    joystickActive = true;
-    joystick.setPointerCapture(event.pointerId);
-
-    updateJoystick(event.clientX, event.clientY);
-});
-
-joystick.addEventListener("pointermove", (event) => {
-    if (!joystickActive) return;
-
-    updateJoystick(event.clientX, event.clientY);
-});
-
-joystick.addEventListener("pointerup", resetJoystick);
-joystick.addEventListener("pointercancel", resetJoystick);
-
-
-// ===============================
-// СОЗДАНИЕ ВРАГОВ
-// ===============================
-
-function createEnemy() {
-
-    /*
-       ГЛАВНАЯ ЛОГИКА:
-
-       Уровень 1 = 2 самолётика
-       Уровень 2 = 3 самолётика
-       Уровень 3 = 4 самолётика
-       Уровень 4 = 5 самолётиков
-
-       Каждый уровень +1 враг.
-    */
-
-    const enemyCount = level + 1;
-
-    // Не создаём больше врагов,
-    // чем разрешено текущим уровнем.
-    if (enemies.length >= enemyCount) {
-        return;
-    }
-
-    const enemy = {
-
-        x: Math.random() * (width - 50) + 25,
-
-        y: -70,
-
-        width: 38,
-        height: 55,
-
-        speed:
-            2.2 +
-            Math.random() * 1.8 +
-            level * 0.12,
-
-        rotation:
-            (Math.random() - 0.5) * 0.3
-    };
-
-    enemies.push(enemy);
-}
-
-
-// ===============================
-// САМОЛЁТ ИГРОКА
-// ===============================
-
-function drawPlayer() {
-
-    ctx.save();
-
-    ctx.translate(player.x, player.y);
-
-    ctx.fillStyle = "#42a5f5";
-
-    // корпус
-    ctx.beginPath();
-
-    ctx.moveTo(0, -28);
-    ctx.lineTo(11, 12);
-    ctx.lineTo(7, 28);
-    ctx.lineTo(0, 22);
-    ctx.lineTo(-7, 28);
-    ctx.lineTo(-11, 12);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    // левое крыло
-    ctx.fillStyle = "#1976d2";
-
-    ctx.beginPath();
-
-    ctx.moveTo(-7, -2);
-    ctx.lineTo(-27, 17);
-    ctx.lineTo(-10, 13);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    // правое крыло
-    ctx.beginPath();
-
-    ctx.moveTo(7, -2);
-    ctx.lineTo(27, 17);
-    ctx.lineTo(10, 13);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    // кабина
-    ctx.fillStyle = "#e3f2fd";
-
-    ctx.beginPath();
-
-    ctx.ellipse(
-        0,
-        -11,
-        4,
-        8,
-        0,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    ctx.restore();
-}
-
-
-// ===============================
-// ВРАГ
-// ===============================
-
-function drawEnemy(enemy) {
-
-    ctx.save();
-
-    ctx.translate(enemy.x, enemy.y);
-
-    ctx.rotate(enemy.rotation);
-
-    ctx.fillStyle = "#ef5350";
-
-    // корпус
-    ctx.beginPath();
-
-    ctx.moveTo(0, -28);
-    ctx.lineTo(10, 12);
-    ctx.lineTo(7, 28);
-    ctx.lineTo(0, 22);
-    ctx.lineTo(-7, 28);
-    ctx.lineTo(-10, 12);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    // крылья
-    ctx.fillStyle = "#c62828";
-
-    ctx.beginPath();
-
-    ctx.moveTo(-7, -2);
-    ctx.lineTo(-26, 17);
-    ctx.lineTo(-9, 13);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    ctx.beginPath();
-
-    ctx.moveTo(7, -2);
-    ctx.lineTo(26, 17);
-    ctx.lineTo(9, 13);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    // кабина
-    ctx.fillStyle = "#ffcdd2";
-
-    ctx.beginPath();
-
-    ctx.ellipse(
-        0,
-        -11,
-        4,
-        8,
-        0,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-    ctx.restore();
-}
-
-
-// ===============================
-// ЧАСТИЦЫ
-// ===============================
-
-function createExplosion(x, y) {
-
-    for (let i = 0; i < 15; i++) {
-
-        particles.push({
-            x: x,
-            y: y,
-
-            dx: (Math.random() - 0.5) * 5,
-            dy: (Math.random() - 0.5) * 5,
-
-            life: 1
-        });
-    }
-}
-
-function updateParticles() {
-
-    for (let i = particles.length - 1; i >= 0; i--) {
-
-        const p = particles[i];
-
-        p.x += p.dx;
-        p.y += p.dy;
-
-        p.life -= 0.03;
-
-        if (p.life <= 0) {
-            particles.splice(i, 1);
-        }
-    }
-}
-
-function drawParticles() {
-
-    for (const p of particles) {
-
-        ctx.globalAlpha = p.life;
-
-        ctx.fillStyle = "#ffcc00";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            p.x,
-            p.y,
-            3,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-    }
-
-    ctx.globalAlpha = 1;
-}
-
-
-// ===============================
-// ФОН
-// ===============================
-
-const stars = [];
-
-for (let i = 0; i < 100; i++) {
-
-    stars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: Math.random() * 2 + 0.5,
-        speed: Math.random() * 1.5 + 0.5
-    });
-}
-
-function drawBackground(delta) {
-
-    ctx.fillStyle = "#020611";
-
-    ctx.fillRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-    for (const star of stars) {
-
-        star.y += star.speed * delta * 0.05;
-
-        if (star.y > height) {
-            star.y = -5;
-            star.x = Math.random() * width;
-        }
-
-        ctx.fillStyle = "rgba(255,255,255,0.7)";
-
-        ctx.fillRect(
-            star.x,
-            star.y,
-            star.size,
-            star.size
-        );
-    }
-}
-
-
-// ===============================
-// СТОЛКНОВЕНИЯ
-// ===============================
-
-function checkCollision(a, b) {
-
-    return (
-        a.x - a.width / 2 <
-        b.x + b.width / 2 &&
-
-        a.x + a.width / 2 >
-        b.x - b.width / 2 &&
-
-        a.y - a.height / 2 <
-        b.y + b.height / 2 &&
-
-        a.y + a.height / 2 >
-        b.y - b.height / 2
-    );
-}
-
-
-// ===============================
-// ОБНОВЛЕНИЕ ИГРОКА
-// ===============================
-
-function updatePlayer() {
-
-    let dx = 0;
-    let dy = 0;
-
-    if (
-        keys["arrowleft"] ||
-        keys["a"]
-    ) {
-        dx -= 1;
-    }
-
-    if (
-        keys["arrowright"] ||
-        keys["d"]
-    ) {
-        dx += 1;
-    }
-
-    if (
-        keys["arrowup"] ||
-        keys["w"]
-    ) {
-        dy -= 1;
-    }
-
-    if (
-        keys["arrowdown"] ||
-        keys["s"]
-    ) {
-        dy += 1;
-    }
-
-    if (joystickActive) {
-        dx = joystickX;
-        dy = joystickY;
-    }
-
-    player.x += dx * player.speed;
-    player.y += dy * player.speed;
-
-
-    // границы
-
-    if (player.x < 25) {
-        player.x = 25;
-    }
-
-    if (player.x > width - 25) {
-        player.x = width - 25;
-    }
-
-    if (player.y < 40) {
-        player.y = 40;
-    }
-
-    if (player.y > height - 40) {
-        player.y = height - 40;
-    }
-}
-
-
-// ===============================
-// ОБНОВЛЕНИЕ ВРАГОВ
-// ===============================
-
-function updateEnemies(delta) {
-
-    for (let i = enemies.length - 1; i >= 0; i--) {
-
-        const enemy = enemies[i];
-
-        enemy.y += enemy.speed * delta * 0.06;
-
-        // столкновение
-
-        if (checkCollision(player, enemy)) {
-
-            createExplosion(
-                enemy.x,
-                enemy.y
+        player.x =
+            Math.max(
+                25,
+                Math.min(
+                    W - 25,
+                    player.x
+                )
             );
 
-            enemies.splice(i, 1);
+        player.y =
+            Math.max(
+                25,
+                Math.min(
+                    H - 25,
+                    player.y
+                )
+            );
 
-            lives--;
-
-            livesText.textContent = lives;
-
-            if (lives <= 0) {
-                endGame();
-            }
-
-            continue;
-        }
-
-
-        // самолётик улетел вниз
-
-        if (enemy.y > height + 80) {
-
-            enemies.splice(i, 1);
-
-            score += 10;
-
-            updateLevel();
-
-            scoreText.textContent = score;
-        }
-    }
-}
-
-
-// ===============================
-// УРОВНИ
-// ===============================
-
-function updateLevel() {
-
-    const newLevel =
-        Math.floor(score / 50) + 1;
-
-    if (newLevel !== level) {
-
-        level = newLevel;
-
-        levelText.textContent = level;
-
-        /*
-          Здесь автоматически увеличивается
-          количество самолётиков:
-
-          level 1 → 2
-          level 2 → 3
-          level 3 → 4
-          level 4 → 5
-          ...
-        */
-    }
-}
-
-
-// ===============================
-// СПАВН
-// ===============================
-
-function spawnEnemies(delta) {
-
-    spawnTimer += delta;
-
-    /*
-       Чем выше уровень,
-       тем быстрее появляются самолётики.
-    */
-
-    const spawnDelay =
-        Math.max(
-            350,
-            1400 - level * 40
-        );
-
-    if (spawnTimer >= spawnDelay) {
-
-        spawnTimer = 0;
-
-        /*
-           Проверяем количество врагов.
-           На каждом новом уровне разрешается
-           на 1 самолётик больше.
-        */
-
-        const maxEnemies = level + 1;
-
-        if (enemies.length < maxEnemies) {
-
-            createEnemy();
-        }
-    }
-}
-
-
-// ===============================
-// GAME OVER
-// ===============================
-
-function endGame() {
-
-    gameRunning = false;
-
-    finalScoreText.textContent = score;
-    finalLevelText.textContent = level;
-
-    if (score > bestScore) {
-
-        bestScore = score;
-
-        localStorage.setItem(
-            "skyDodgeBestScore",
-            bestScore
-        );
     }
 
-    bestText.textContent = bestScore;
-
-    gameOverScreen.style.display = "flex";
 }
 
 
-// ===============================
-// ПЕРЕЗАПУСК
-// ===============================
-
-function restartGame() {
-
-    score = 0;
-    level = 1;
-    lives = 3;
-
-    enemies = [];
-    particles = [];
-
-    player.x = width / 2;
-    player.y = height - 120;
-
-    spawnTimer = 0;
-
-    scoreText.textContent = score;
-    levelText.textContent = level;
-    livesText.textContent = lives;
-
-    gameOverScreen.style.display = "none";
-
-    gameRunning = true;
-
-    lastTime = performance.now();
-
-    requestAnimationFrame(gameLoop);
-}
-
-restartButton.addEventListener(
-    "click",
-    restartGame
+window.addEventListener(
+    "resize",
+    resize
 );
 
 
-// ===============================
-// ТАЙМЕР СЧЁТА
-// ===============================
+window.addEventListener(
+    "orientationchange",
+    () => {
 
-let scoreTimer = 0;
+        setTimeout(
+            resize,
+            120
+        );
+
+    }
+);
 
 
-// ===============================
-// ГЛАВНЫЙ ЦИКЛ
-// ===============================
+resize();
 
-function gameLoop(time) {
+
+/* =========================================================
+   RECORD
+========================================================= */
+
+let bestScore =
+    Number(
+        localStorage.getItem(
+            "skyDodgeBestScore"
+        )
+    ) || 0;
+
+
+function updateRecordUI() {
+
+    document.getElementById(
+        "recordValue"
+    ).textContent =
+        bestScore;
+
+}
+
+
+updateRecordUI();
+
+
+/* =========================================================
+   SERVER API
+========================================================= */
+
+async function api(
+    path,
+    options = {}
+) {
+
+    const response =
+        await fetch(
+            path,
+            {
+                ...options,
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+
+                    ...(options.headers || {})
+                },
+
+                credentials:
+                    "same-origin"
+            }
+        );
+
+
+    const data =
+        await response
+            .json()
+            .catch(
+                () => ({
+                    success: false,
+                    error:
+                        "Ошибка ответа сервера"
+                })
+            );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.error ||
+            "Ошибка сервера"
+        );
+
+    }
+
+
+    return data;
+
+}
+
+
+/* =========================================================
+   USER
+========================================================= */
+
+async function refreshUser() {
+
+    try {
+
+        const data =
+            await api(
+                "/api/me"
+            );
+
+
+        if (
+            data.logged_in
+        ) {
+
+            document.getElementById(
+                "userLabel"
+            ).textContent =
+                "👤 " +
+                data.user.username;
+
+
+            document.getElementById(
+                "logoutBtn"
+            ).classList.remove(
+                "hidden"
+            );
+
+
+            bestScore =
+                Math.max(
+                    bestScore,
+                    Number(
+                        data.score.best_score ||
+                        0
+                    )
+                );
+
+
+            localStorage.setItem(
+                "skyDodgeBestScore",
+                bestScore
+            );
+
+
+            updateRecordUI();
+
+
+            document.getElementById(
+                "accountInfo"
+            ).textContent =
+                "Игрок: " +
+                data.user.username +
+                " • рекорд: " +
+                bestScore;
+
+
+            return true;
+
+        }
+
+    } catch {}
+
+
+
+    document.getElementById(
+        "userLabel"
+    ).textContent =
+        "👤 Гость";
+
+
+    document.getElementById(
+        "logoutBtn"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "accountInfo"
+    ).textContent =
+        "Гостевой режим • локальный рекорд: " +
+        bestScore;
+
+
+    return false;
+
+}
+
+
+function showMessage(
+    text,
+    danger = false
+) {
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+    message.textContent =
+        text;
+
+    message.className =
+        danger
+            ? "danger"
+            : "";
+
+}
+
+
+async function register() {
+
+    const username =
+        document.getElementById(
+            "username"
+        ).value.trim();
+
+
+    const password =
+        document.getElementById(
+            "password"
+        ).value;
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/register",
+                {
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+                            username,
+                            password
+                        })
+                }
+            );
+
+
+        showMessage(
+            data.message ||
+            "Аккаунт создан"
+        );
+
+
+        await refreshUser();
+
+
+        document
+            .getElementById(
+                "authScreen"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+
+    } catch (error) {
+
+        showMessage(
+            error.message,
+            true
+        );
+
+    }
+
+}
+
+
+async function login() {
+
+    const username =
+        document.getElementById(
+            "username"
+        ).value.trim();
+
+
+    const password =
+        document.getElementById(
+            "password"
+        ).value;
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/login",
+                {
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+                            username,
+                            password
+                        })
+                }
+            );
+
+
+        showMessage(
+            data.message ||
+            "Вход выполнен"
+        );
+
+
+        await refreshUser();
+
+
+        document
+            .getElementById(
+                "authScreen"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+
+    } catch (error) {
+
+        showMessage(
+            error.message,
+            true
+        );
+
+    }
+
+}
+
+
+async function logout() {
+
+    try {
+
+        await api(
+            "/api/logout",
+            {
+                method: "POST",
+                body: "{}"
+            }
+        );
+
+    } catch {}
+
+
+    await refreshUser();
+
+}
+
+
+async function submitScore() {
+
+    try {
+
+        return await api(
+            "/api/score",
+            {
+                method: "POST",
+
+                body:
+                    JSON.stringify({
+                        score:
+                            Math.floor(
+                                score
+                            ),
+
+                        level
+                    })
+            }
+        );
+
+    } catch {
+
+        return null;
+
+    }
+
+}
+
+
+/* =========================================================
+   LEADERBOARD
+========================================================= */
+
+async function loadLeaders() {
+
+    const box =
+        document.getElementById(
+            "leaderboard"
+        );
+
+
+    box.textContent =
+        "Загрузка...";
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/leaderboard"
+            );
+
+
+        if (
+            !data.leaderboard.length
+        ) {
+
+            box.innerHTML =
+                '<div class="small">' +
+                'Пока нет результатов.' +
+                '</div>';
+
+            return;
+
+        }
+
+
+        let html = `
+            <table class="table">
+                <tr>
+                    <th>#</th>
+                    <th>Игрок</th>
+                    <th>Счёт</th>
+                    <th>Уровень</th>
+                </tr>
+        `;
+
+
+        for (
+            const playerData
+            of data.leaderboard
+        ) {
+
+            html += `
+                <tr>
+                    <td>
+                        ${playerData.position}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            playerData.username
+                        )}
+                    </td>
+
+                    <td>
+                        ${playerData.score}
+                    </td>
+
+                    <td>
+                        ${playerData.level}
+                    </td>
+                </tr>
+            `;
+
+        }
+
+
+        box.innerHTML =
+            html +
+            "</table>";
+
+
+    } catch {
+
+        box.textContent =
+            "Не удалось загрузить таблицу.";
+
+    }
+
+}
+
+
+function escapeHtml(
+    value
+) {
+
+    return String(
+        value
+    ).replace(
+        /[&<>"']/g,
+        char =>
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char])
+    );
+
+}
+
+
+function openLeaders() {
+
+    document
+        .getElementById(
+            "authScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "startScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "gameOver"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "leaderScreen"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+
+    loadLeaders();
+
+}
+
+
+function closeLeaders() {
+
+    document
+        .getElementById(
+            "leaderScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    if (!gameRunning) {
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   GAME VARIABLES
+========================================================= */
+
+let gameRunning =
+    false;
+
+let score =
+    0;
+
+let level =
+    1;
+
+let lives =
+    3;
+
+let spawnTimer =
+    0;
+
+let timeTimer =
+    0;
+
+let lastTime =
+    0;
+
+let gameTime =
+    0;
+
+let screenShake =
+    0;
+
+
+const player = {
+
+    x:
+        W / 2,
+
+    y:
+        H / 2,
+
+    vx:
+        0,
+
+    vy:
+        0,
+
+    radius:
+        19,
+
+    angle:
+        0,
+
+    invincible:
+        0
+
+};
+
+
+/* =========================================================
+   JOYSTICK
+========================================================= */
+
+const joystick =
+    document.getElementById(
+        "joystick"
+    );
+
+
+const stick =
+    document.getElementById(
+        "stick"
+    );
+
+
+let joy = {
+
+    active:
+        false,
+
+    pointerId:
+        null,
+
+    x:
+        0,
+
+    y:
+        0,
+
+    max:
+        47
+
+};
+
+
+function joystickCenter() {
+
+    const rect =
+        joystick.getBoundingClientRect();
+
+
+    return {
+
+        x:
+            rect.left +
+            rect.width / 2,
+
+        y:
+            rect.top +
+            rect.height / 2
+
+    };
+
+}
+
+
+function updateJoy(
+    clientX,
+    clientY
+) {
+
+    const center =
+        joystickCenter();
+
+
+    let dx =
+        clientX -
+        center.x;
+
+
+    let dy =
+        clientY -
+        center.y;
+
+
+    const distance =
+        Math.hypot(
+            dx,
+            dy
+        );
+
+
+    if (
+        distance >
+        joy.max
+    ) {
+
+        dx =
+            dx /
+            distance *
+            joy.max;
+
+
+        dy =
+            dy /
+            distance *
+            joy.max;
+
+    }
+
+
+    joy.x =
+        dx /
+        joy.max;
+
+
+    joy.y =
+        dy /
+        joy.max;
+
+
+    stick.style.transform =
+        `translate(
+            calc(-50% + ${dx}px),
+            calc(-50% + ${dy}px)
+        )`;
+
+}
+
+
+function resetJoy() {
+
+    joy.active =
+        false;
+
+    joy.pointerId =
+        null;
+
+    joy.x =
+        0;
+
+    joy.y =
+        0;
+
+
+    stick.style.transform =
+        "translate(-50%, -50%)";
+
+}
+
+
+joystick.addEventListener(
+    "pointerdown",
+    event => {
+
+        event.preventDefault();
+
+        joy.active =
+            true;
+
+        joy.pointerId =
+            event.pointerId;
+
+
+        joystick.setPointerCapture(
+            event.pointerId
+        );
+
+
+        updateJoy(
+            event.clientX,
+            event.clientY
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+joystick.addEventListener(
+    "pointermove",
+    event => {
+
+        if (
+            !joy.active ||
+            event.pointerId !==
+                joy.pointerId
+        ) {
+
+            return;
+
+        }
+
+
+        event.preventDefault();
+
+
+        updateJoy(
+            event.clientX,
+            event.clientY
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+joystick.addEventListener(
+    "pointerup",
+    event => {
+
+        if (
+            event.pointerId ===
+            joy.pointerId
+        ) {
+
+            resetJoy();
+
+        }
+
+    }
+);
+
+
+joystick.addEventListener(
+    "pointercancel",
+    resetJoy
+);
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+const keys = {};
+
+
+window.addEventListener(
+    "keydown",
+    event => {
+
+        keys[
+            event.key.toLowerCase()
+        ] = true;
+
+    }
+);
+
+
+window.addEventListener(
+    "keyup",
+    event => {
+
+        keys[
+            event.key.toLowerCase()
+        ] = false;
+
+    }
+);
+
+
+function keyboardInput() {
+
+    let x = 0;
+    let y = 0;
+
+
+    if (
+        keys["a"] ||
+        keys["arrowleft"]
+    ) {
+
+        x -= 1;
+
+    }
+
+
+    if (
+        keys["d"] ||
+        keys["arrowright"]
+    ) {
+
+        x += 1;
+
+    }
+
+
+    if (
+        keys["w"] ||
+        keys["arrowup"]
+    ) {
+
+        y -= 1;
+
+    }
+
+
+    if (
+        keys["s"] ||
+        keys["arrowdown"]
+    ) {
+
+        y += 1;
+
+    }
+
+
+    return {
+        x,
+        y
+    };
+
+}
+
+
+/* =========================================================
+   ENEMIES
+========================================================= */
+
+let enemies = [];
+
+
+function spawnEnemy() {
+
+    const side =
+        Math.floor(
+            Math.random() * 4
+        );
+
+
+    let x;
+    let y;
+
+
+    if (
+        side === 0
+    ) {
+
+        x =
+            Math.random() *
+            W;
+
+        y =
+            -80;
+
+    }
+
+    else if (
+        side === 1
+    ) {
+
+        x =
+            W + 80;
+
+        y =
+            Math.random() *
+            H;
+
+    }
+
+    else if (
+        side === 2
+    ) {
+
+        x =
+            Math.random() *
+            W;
+
+        y =
+            H + 80;
+
+    }
+
+    else {
+
+        x =
+            -80;
+
+        y =
+            Math.random() *
+            H;
+
+    }
+
+
+    const angle =
+        Math.atan2(
+            player.y - y,
+            player.x - x
+        );
+
+
+    const speed =
+        1.7 +
+        level * .42 +
+        Math.random() * 1.1;
+
+
+    enemies.push({
+
+        x,
+        y,
+
+        vx:
+            Math.cos(angle) *
+            speed,
+
+        vy:
+            Math.sin(angle) *
+            speed,
+
+        radius:
+            17,
+
+        angle,
+
+        speed,
+
+        color:
+            Math.random() > .5
+                ? "#ff3864"
+                : "#ff8a3d"
+
+    });
+
+}
+
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+let particles = [];
+
+
+function explode(
+    x,
+    y
+) {
+
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
+
+        const angle =
+            Math.random() *
+            Math.PI *
+            2;
+
+
+        const speed =
+            1 +
+            Math.random() *
+            5;
+
+
+        particles.push({
+
+            x,
+            y,
+
+            vx:
+                Math.cos(angle) *
+                speed,
+
+            vy:
+                Math.sin(angle) *
+                speed,
+
+            life:
+                1,
+
+            size:
+                2 +
+                Math.random() *
+                4,
+
+            color:
+                Math.random() > .5
+                    ? "#00eaff"
+                    : "#ffffff"
+
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   CLOUDS
+========================================================= */
+
+let clouds = [];
+
+
+function resetClouds() {
+
+    clouds = [];
+
+
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
+
+        clouds.push({
+
+            x:
+                Math.random() *
+                W,
+
+            y:
+                Math.random() *
+                H,
+
+            size:
+                20 +
+                Math.random() *
+                70,
+
+            speed:
+                .3 +
+                Math.random() *
+                1.5
+
+        });
+
+    }
+
+}
+
+
+resetClouds();
+
+
+/* =========================================================
+   UPDATE
+========================================================= */
+
+function update(dt) {
 
     if (!gameRunning) {
         return;
     }
 
-    const delta =
-        Math.min(
-            time - lastTime,
-            50
+
+    gameTime +=
+        dt;
+
+
+    let inputX =
+        joy.x;
+
+
+    let inputY =
+        joy.y;
+
+
+    const keyboard =
+        keyboardInput();
+
+
+    if (
+        !joy.active &&
+        (
+            keyboard.x !== 0 ||
+            keyboard.y !== 0
+        )
+    ) {
+
+        inputX =
+            keyboard.x;
+
+        inputY =
+            keyboard.y;
+
+    }
+
+
+    const power =
+        6.5;
+
+
+    player.vx +=
+        (
+            inputX *
+            power -
+            player.vx
+        ) * .16;
+
+
+    player.vy +=
+        (
+            inputY *
+            power -
+            player.vy
+        ) * .16;
+
+
+    player.x +=
+        player.vx *
+        dt *
+        .06;
+
+
+    player.y +=
+        player.vy *
+        dt *
+        .06;
+
+
+    const margin =
+        25;
+
+
+    if (
+        player.x <
+        margin
+    ) {
+
+        player.x =
+            margin;
+
+        player.vx *=
+            -.25;
+
+    }
+
+
+    if (
+        player.x >
+        W - margin
+    ) {
+
+        player.x =
+            W - margin;
+
+        player.vx *=
+            -.25;
+
+    }
+
+
+    if (
+        player.y <
+        margin
+    ) {
+
+        player.y =
+            margin;
+
+        player.vy *=
+            -.25;
+
+    }
+
+
+    if (
+        player.y >
+        H - margin
+    ) {
+
+        player.y =
+            H - margin;
+
+        player.vy *=
+            -.25;
+
+    }
+
+
+    if (
+        Math.abs(
+            player.vx
+        ) +
+        Math.abs(
+            player.vy
+        ) > .2
+    ) {
+
+        player.angle =
+            Math.atan2(
+                player.vy,
+                player.vx
+            );
+
+    }
+
+
+    /* =====================
+       SPAWN
+    ===================== */
+
+    spawnTimer +=
+        dt;
+
+
+    const spawnDelay =
+        Math.max(
+            420,
+            1250 -
+            level * 55
         );
 
-    lastTime = time;
+
+    if (
+        spawnTimer >
+        spawnDelay
+    ) {
+
+        spawnTimer =
+            0;
 
 
-    // фон
-
-    drawBackground(delta);
-
-
-    // игрок
-
-    updatePlayer();
-
-
-    // враги
-
-    spawnEnemies(delta);
-
-    updateEnemies(delta);
+        const amount =
+            Math.min(
+                1 +
+                Math.floor(
+                    level / 4
+                ),
+                3
+            );
 
 
-    // частицы
+        for (
+            let i = 0;
+            i < amount;
+            i++
+        ) {
 
-    updateParticles();
+            spawnEnemy();
 
+        }
 
-    // счёт за время
-
-    scoreTimer += delta;
-
-    if (scoreTimer >= 1000) {
-
-        scoreTimer -= 1000;
-
-        score += 5;
-
-        updateLevel();
-
-        scoreText.textContent = score;
     }
 
 
-    // рисуем врагов
+    /* =====================
+       ENEMIES
+    ===================== */
 
-    for (const enemy of enemies) {
-        drawEnemy(enemy);
+    for (
+        let i =
+            enemies.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const enemy =
+            enemies[i];
+
+
+        const target =
+            Math.atan2(
+                player.y -
+                    enemy.y,
+
+                player.x -
+                    enemy.x
+            );
+
+
+        let diff =
+            target -
+            enemy.angle;
+
+
+        while (
+            diff >
+            Math.PI
+        ) {
+
+            diff -=
+                Math.PI * 2;
+
+        }
+
+
+        while (
+            diff <
+            -Math.PI
+        ) {
+
+            diff +=
+                Math.PI * 2;
+
+        }
+
+
+        enemy.angle +=
+            diff *
+            .012 *
+            dt;
+
+
+        enemy.vx =
+            Math.cos(
+                enemy.angle
+            ) *
+            enemy.speed;
+
+
+        enemy.vy =
+            Math.sin(
+                enemy.angle
+            ) *
+            enemy.speed;
+
+
+        enemy.x +=
+            enemy.vx *
+            dt *
+            .06;
+
+
+        enemy.y +=
+            enemy.vy *
+            dt *
+            .06;
+
+
+        /* collision */
+
+        if (
+            player.invincible <= 0 &&
+            collision(
+                player,
+                enemy
+            )
+        ) {
+
+            player.invincible =
+                1600;
+
+            lives--;
+
+            explode(
+                player.x,
+                player.y
+            );
+
+            screenShake =
+                300;
+
+            enemies.splice(
+                i,
+                1
+            );
+
+
+            updateHUD();
+
+
+            if (
+                lives <= 0
+            ) {
+
+                gameOver();
+
+                return;
+
+            }
+
+        }
+
+
+        /* escaped */
+
+        if (
+            enemy.x <
+                -150 ||
+            enemy.x >
+                W + 150 ||
+            enemy.y <
+                -150 ||
+            enemy.y >
+                H + 150
+        ) {
+
+            enemies.splice(
+                i,
+                1
+            );
+
+
+            score +=
+                10;
+
+
+            checkLevel();
+
+        }
+
     }
 
 
-    // рисуем игрока
+    if (
+        player.invincible >
+        0
+    ) {
 
-    drawPlayer();
+        player.invincible -=
+            dt;
+
+    }
 
 
-    // частицы
+    /* =====================
+       PARTICLES
+    ===================== */
 
-    drawParticles();
+    for (
+        let i =
+            particles.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const p =
+            particles[i];
 
 
-    requestAnimationFrame(gameLoop);
+        p.x +=
+            p.vx *
+            dt *
+            .05;
+
+
+        p.y +=
+            p.vy *
+            dt *
+            .05;
+
+
+        p.life -=
+            dt /
+            700;
+
+
+        if (
+            p.life <= 0
+        ) {
+
+            particles.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+
+    /* =====================
+       SCORE
+    ===================== */
+
+    timeTimer +=
+        dt;
+
+
+    if (
+        timeTimer >
+        1000
+    ) {
+
+        timeTimer =
+            0;
+
+        score +=
+            5;
+
+        checkLevel();
+
+    }
+
+
+    saveLocalBest();
+
+    updateHUD();
+
 }
 
 
-// ===============================
-// ЗАПУСК
-// ===============================
+/* =========================================================
+   LEVEL
+========================================================= */
 
-scoreText.textContent = score;
-levelText.textContent = level;
-livesText.textContent = lives;
+function checkLevel() {
 
-requestAnimationFrame(gameLoop);
+    const newLevel =
+        Math.floor(
+            score /
+            50
+        ) + 1;
+
+
+    if (
+        newLevel >
+        level
+    ) {
+
+        level =
+            newLevel;
+
+
+        showCheckpoint();
+
+
+        enemies.splice(
+            0,
+            Math.floor(
+                enemies.length /
+                2
+            )
+        );
+
+
+        player.invincible =
+            1800;
+
+    }
+
+}
+
+
+function showCheckpoint() {
+
+    const element =
+        document.getElementById(
+            "checkpoint"
+        );
+
+
+    document.getElementById(
+        "checkpointSub"
+    ).textContent =
+        "УРОВЕНЬ " +
+        level;
+
+
+    element.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () => {
+
+            element.classList.remove(
+                "show"
+            );
+
+        },
+        1600
+    );
+
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function updateHUD() {
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        Math.floor(
+            score
+        );
+
+
+    document.getElementById(
+        "recordValue"
+    ).textContent =
+        bestScore;
+
+
+    document.getElementById(
+        "level"
+    ).textContent =
+        "УРОВЕНЬ " +
+        level;
+
+
+    document.getElementById(
+        "lives"
+    ).textContent =
+
+        "❤️ ".repeat(
+            lives
+        )
+
+        +
+
+        "🖤 ".repeat(
+            Math.max(
+                0,
+                3 - lives
+            )
+        );
+
+}
+
+
+function saveLocalBest() {
+
+    if (
+        score >
+        bestScore
+    ) {
+
+        bestScore =
+            Math.floor(
+                score
+            );
+
+
+        localStorage.setItem(
+            "skyDodgeBestScore",
+            bestScore
+        );
+
+
+        updateRecordUI();
+
+    }
+
+}
+
+
+/* =========================================================
+   DRAW
+========================================================= */
+
+function drawBackground(dt) {
+
+    const gradient =
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            H
+        );
+
+
+    gradient.addColorStop(
+        0,
+        "#07172d"
+    );
+
+
+    gradient.addColorStop(
+        1,
+        "#020710"
+    );
+
+
+    ctx.fillStyle =
+        gradient;
+
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    /* speed lines */
+
+    ctx.save();
+
+    ctx.globalAlpha =
+        .22;
+
+
+    for (
+        let i = 0;
+        i < 80;
+        i++
+    ) {
+
+        const x =
+            (
+                i * 97 +
+                gameTime *
+                (
+                    20 +
+                    level * 3
+                )
+            ) %
+            (W + 100);
+
+
+        const y =
+            (
+                i * 53
+            ) %
+            H;
+
+
+        const length =
+            15 +
+            (
+                i % 5
+            ) * 10;
+
+
+        ctx.strokeStyle =
+            i % 3 === 0
+                ? "#5bdcff"
+                : "#ffffff";
+
+
+        ctx.lineWidth =
+            1;
+
+
+        ctx.beginPath();
+
+
+        ctx.moveTo(
+            x,
+            y
+        );
+
+
+        ctx.lineTo(
+            x,
+            y + length
+        );
+
+
+        ctx.stroke();
+
+    }
+
+
+    ctx.restore();
+
+
+    /* clouds */
+
+    for (
+        const cloud
+        of clouds
+    ) {
+
+        cloud.y +=
+            cloud.speed *
+            dt *
+            .04;
+
+
+        if (
+            cloud.y >
+            H + 100
+        ) {
+
+            cloud.y =
+                -100;
+
+            cloud.x =
+                Math.random() *
+                W;
+
+        }
+
+
+        ctx.save();
+
+
+        ctx.globalAlpha =
+            .07;
+
+
+        ctx.fillStyle =
+            "#ffffff";
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            cloud.x,
+            cloud.y,
+            cloud.size,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.arc(
+            cloud.x +
+                cloud.size * .8,
+            cloud.y + 5,
+            cloud.size * .65,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.arc(
+            cloud.x -
+                cloud.size * .7,
+            cloud.y + 8,
+            cloud.size * .55,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.fill();
+
+
+        ctx.restore();
+
+    }
+
+}
+
+
+/* =========================================================
+   AIRPLANES
+========================================================= */
+
+function drawPlane(
+    plane,
+    enemy = false
+) {
+
+    ctx.save();
+
+
+    ctx.translate(
+        plane.x,
+        plane.y
+    );
+
+
+    ctx.rotate(
+        plane.angle
+    );
+
+
+    ctx.shadowBlur =
+        enemy
+            ? 15
+            : 25;
+
+
+    ctx.shadowColor =
+        enemy
+            ? plane.color
+            : "#00eaff";
+
+
+    ctx.fillStyle =
+        enemy
+            ? plane.color
+            : "#d9f7ff";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        28,
+        0
+    );
+
+
+    ctx.lineTo(
+        -17,
+        -13
+    );
+
+
+    ctx.lineTo(
+        -10,
+        0
+    );
+
+
+    ctx.lineTo(
+        -17,
+        13
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        enemy
+            ? "#7e172d"
+            : "#26a9e0";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        5,
+        0
+    );
+
+
+    ctx.lineTo(
+        -16,
+        -26
+    );
+
+
+    ctx.lineTo(
+        -10,
+        -5
+    );
+
+
+    ctx.lineTo(
+        -10,
+        5
+    );
+
+
+    ctx.lineTo(
+        -16,
+        26
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        enemy
+            ? "#1b050a"
+            : "#102e45";
+
+
+    ctx.beginPath();
+
+
+    ctx.ellipse(
+        9,
+        0,
+        9,
+        5,
+        0,
+        0,
+        Math.PI * 2
+    );
+
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        "#00eaff";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        -15,
+        -5
+    );
+
+
+    ctx.lineTo(
+        -30,
+        0
+    );
+
+
+    ctx.lineTo(
+        -15,
+        5
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   COLLISION
+========================================================= */
+
+function collision(
+    a,
+    b
+) {
+
+    return (
+        Math.hypot(
+            a.x - b.x,
+            a.y - b.y
+        )
+        <
+        a.radius +
+        b.radius
+    );
+
+}
+
+
+/* =========================================================
+   GAME START
+========================================================= */
+
+function startGame() {
+
+    document
+        .getElementById(
+            "startScreen"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "gameOver"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    score =
+        0;
+
+    level =
+        1;
+
+    lives =
+        3;
+
+
+    spawnTimer =
+        0;
+
+    timeTimer =
+        0;
+
+
+    enemies =
+        [];
+
+    particles =
+        [];
+
+
+    player.x =
+        W / 2;
+
+
+    player.y =
+        Math.min(
+            H * .42,
+            H - 180
+        );
+
+
+    player.vx =
+        0;
+
+    player.vy =
+        0;
+
+    player.angle =
+        0;
+
+    player.invincible =
+        1200;
+
+
+    resetClouds();
+
+    resetJoy();
+
+
+    gameRunning =
+        true;
+
+
+    updateHUD();
+
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+async function gameOver() {
+
+    gameRunning =
+        false;
+
+
+    resetJoy();
+
+
+    saveLocalBest();
+
+
+    const result =
+        await submitScore();
+
+
+    document.getElementById(
+        "finalScore"
+    ).textContent =
+        "Счёт: " +
+        Math.floor(
+            score
+        );
+
+
+    document.getElementById(
+        "finalLevel"
+    ).textContent =
+        "Уровень: " +
+        level;
+
+
+    document.getElementById(
+        "recordNotice"
+    ).textContent =
+
+        result &&
+        result.new_record
+
+            ? "🏆 НОВЫЙ СЕРВЕРНЫЙ РЕКОРД!"
+
+            : "🏆 Рекорд: " +
+              bestScore;
+
+
+    document
+        .getElementById(
+            "gameOver"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+document.getElementById(
+    "registerBtn"
+).onclick =
+    register;
+
+
+document.getElementById(
+    "loginBtn"
+).onclick =
+    login;
+
+
+document.getElementById(
+    "logoutBtn"
+).onclick =
+    logout;
+
+
+document.getElementById(
+    "guestBtn"
+).onclick =
+    async () => {
+
+        document
+            .getElementById(
+                "authScreen"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+
+        await refreshUser();
+
+    };
+
+
+document.getElementById(
+    "leadersBtn"
+).onclick =
+    openLeaders;
+
+
+document.getElementById(
+    "startLeadersBtn"
+).onclick =
+    openLeaders;
+
+
+document.getElementById(
+    "gameLeadersBtn"
+).onclick =
+    openLeaders;
+
+
+document.getElementById(
+    "closeLeadersBtn"
+).onclick =
+    closeLeaders;
+
+
+document.getElementById(
+    "startBtn"
+).onclick =
+    startGame;
+
+
+document.getElementById(
+    "restartBtn"
+).onclick =
+    startGame;
+
+
+/* =========================================================
+   MOBILE GESTURES
+========================================================= */
+
+document.addEventListener(
+    "touchmove",
+    event => {
+        event.preventDefault();
+    },
+    {
+        passive: false
+    }
+);
+
+
+document.addEventListener(
+    "gesturestart",
+    event => {
+        event.preventDefault();
+    }
+);
+
+
+document.addEventListener(
+    "dblclick",
+    event => {
+        event.preventDefault();
+    },
+    {
+        passive: false
+    }
+);
+
+
+/* =========================================================
+   LOOP
+========================================================= */
+
+updateHUD();
+
+refreshUser();
+
+
+requestAnimationFrame(
+    function loop(
+        timestamp
+    ) {
+
+        if (!lastTime) {
+            lastTime =
+                timestamp;
+        }
+
+
+        const dt =
+            Math.min(
+                timestamp -
+                    lastTime,
+                40
+            );
+
+
+        lastTime =
+            timestamp;
+
+
+        update(dt);
+
+        draw();
+
+
+        requestAnimationFrame(
+            loop
+        );
+
+    }
+);
 
 </script>
 
 </body>
 </html>
+```
